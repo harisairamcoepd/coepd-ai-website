@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>COEPD Staff Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=20260311" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <div class="head-left">
+        <h1>COEPD Staff Dashboard</h1>
+        <p>Lead view for staff users</p>
+      </div>
+      <div class="head-right">
+        <div class="chip">
+          {{ current_user.name }} &middot; Staff
+        </div>
+        <a href="/logout" class="logout-btn">Logout</a>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-label">Total Leads</div>
+        <div class="card-value">{{ total_leads }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Chatbot Leads</div>
+        <div class="card-value card-value--chatbot">{{ chatbot_leads }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Website Leads</div>
+        <div class="card-value card-value--website">{{ website_leads }}</div>
+      </div>
+    </div>
+
+    <form class="toolbar" method="get" action="/dashboard">
+      <input type="search" name="search" value="{{ search }}" placeholder="Search name, email, phone, location, domain..." />
+      <button type="submit">Search</button>
+      <a href="/dashboard">Clear</a>
+      <div class="pager">
+        {% if page > 1 %}
+        <a href="/dashboard?page={{ page - 1 }}&search={{ search }}">Prev</a>
+        {% endif %}
+        <span>Page {{ page }} of {{ total_pages }}</span>
+        {% if page < total_pages %}
+        <a href="/dashboard?page={{ page + 1 }}&search={{ search }}">Next</a>
+        {% endif %}
+      </div>
+    </form>
+
+    <div class="table-wrap">
+      <table class="leads-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Location</th>
+            <th>Interested Domain</th>
+            <th>Experience</th>
+            <th>WhatsApp</th>
+            <th>Source</th>
+            <th>Date &amp; Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lead in leads %}
+          <tr>
+            <td>{{ lead.id }}</td>
+            <td style="font-weight:500">{{ lead.name }}</td>
+            <td>{{ lead.phone }}</td>
+            <td>{{ lead.email }}</td>
+            <td>{{ lead.location or '-' }}</td>
+            <td>{{ lead.interested_domain or '-' }}</td>
+            <td>{{ lead.experience or '-' }}</td>
+            <td>
+              {% if lead.whatsapp %}
+                <a class="wa-link" href="https://wa.me/91{{ lead.whatsapp }}" target="_blank" rel="noopener">{{ lead.whatsapp }}</a>
+              {% else %}-{% endif %}
+            </td>
+            <td>
+              {% if lead.source == 'chatbot' %}
+                <span class="badge badge-chatbot">chatbot</span>
+              {% else %}
+                <span class="badge badge-webpage">webpage</span>
+              {% endif %}
+            </td>
+            <td style="white-space:nowrap">{{ lead.created_at }}</td>
+          </tr>
+          {% endfor %}
+          {% if not leads %}
+          <tr>
+            <td colspan="10" class="muted" style="text-align:center;padding:24px">No leads found.</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
+
