@@ -15,6 +15,7 @@ from app.middleware.rate_limit import RateLimiter
 from app.routers.admin import router as admin_router
 from app.routers.auth import register_auth_routes
 from app.routers.chat import router as chat_router
+from app.routers.leads import router as leads_router
 from app.routers.pages import register_page_routes
 from chatbot.db import init_db, seed_default_admin_user
 
@@ -117,9 +118,19 @@ def create_app() -> FastAPI:
     logger.info("Authentication enabled")
     logger.info("Application startup complete")
 
+    # Create Supabase PostgreSQL tables
+    try:
+        from app.database import engine
+        from app.db_models import Base
+        Base.metadata.create_all(bind=engine)
+        logger.info("Supabase PostgreSQL tables created")
+    except Exception as exc:
+        logger.warning("Supabase PostgreSQL init skipped: %s", exc)
+
     app.include_router(register_page_routes(templates))
     app.include_router(register_auth_routes(templates))
     app.include_router(chat_router)
     app.include_router(admin_router)
+    app.include_router(leads_router)
 
     return app

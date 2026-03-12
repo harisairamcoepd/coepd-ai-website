@@ -1,4 +1,32 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
+
+
+# ── Supabase Lead schemas ──────────────────────────────────────────────
+
+
+class LeadCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+    phone: str = Field(min_length=8, max_length=20)
+    email: str = Field(min_length=5, max_length=120)
+    city: str = Field(default="", max_length=120)
+    course: str = Field(default="", max_length=120)
+
+
+class LeadResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    phone: str
+    email: str
+    city: str | None = None
+    course: str | None = None
+    created_at: datetime
+
+
+# ── Existing schemas ───────────────────────────────────────────────────
 
 
 class ChatPayload(BaseModel):
