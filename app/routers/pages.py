@@ -3,8 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.auth import CSRF_COOKIE_NAME, create_csrf_token
-from app.services.lead_service import list_dashboard_leads_paginated, list_leads
-from chatbot.db import fetch_dashboard_stats
+from app.services.lead_service import fetch_dashboard_stats, list_dashboard_leads_paginated, list_leads
 
 
 router = APIRouter()

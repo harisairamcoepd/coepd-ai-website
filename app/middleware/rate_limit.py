@@ -13,7 +13,17 @@ class RateLimiter:
         self._buckets: dict[str, deque[float]] = defaultdict(deque)
 
     async def __call__(self, request: Request, call_next):
-        if request.url.path not in {"/chat", "/lead"}:
+        protected_paths = {
+            "/chat",
+            "/lead",
+            "/contact",
+            "/enquiry",
+            "/api/chat",
+            "/api/lead",
+            "/api/contact",
+            "/api/enquiry",
+        }
+        if request.url.path not in protected_paths:
             return await call_next(request)
 
         key = request.client.host if request.client else "unknown"

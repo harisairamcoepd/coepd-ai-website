@@ -1,12 +1,18 @@
+import logging
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
+import bcrypt
 from fastapi import HTTPException, Request, status
 from jose import JWTError, jwt
+from sqlalchemy import func
 
-from chatbot.db import fetch_staff_user_by_email, verify_staff_password
+from app.database import SessionLocal, db_available
+from app.db_models import Staff
+
+logger = logging.getLogger("coepd-api.auth")
 
 AUTH_COOKIE_NAME = "auth_token"
 CSRF_COOKIE_NAME = "coepd_csrf"
@@ -17,8 +23,8 @@ JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRE_HOURS = int(os.getenv("JWT_EXPIRE_HOURS", "2"))
 AUTH_COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE", "false").strip().lower() == "true"
 
-ADMIN_LOGIN_EMAIL = os.getenv("ADMIN_LOGIN_EMAIL", "admin@coepd.com").strip().lower()
-ADMIN_LOGIN_PASSWORD = os.getenv("ADMIN_LOGIN_PASSWORD", "admin123")
+ADMIN_LOGIN_EMAIL = os.getenv("ADMIN_LOGIN_EMAIL", "admin").strip().lower()
+ADMIN_LOGIN_PASSWORD = os.getenv("ADMIN_LOGIN_PASSWORD", "admin")
 
 
 def utc_now() -> datetime:
@@ -73,6 +79,14 @@ def get_current_user(request: Request) -> dict[str, Any]:
     return user
 
 
+def get_current_admin(request: Request) -> dict[str, Any]:
+    user = get_current_user(request)
+    role = str(user.get("role", "")).strip().lower()
+    if role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    return user
+
+
 def require_roles(*roles: str) -> Callable[[Request], dict[str, Any]]:
     normalized_roles = {r.strip().lower() for r in roles if r}
 
@@ -115,22 +129,38 @@ def validate_admin_credentials(email: str, password: str) -> bool:
 def authenticate_user(email: str, password: str) -> dict[str, Any] | None:
     normalized_email = (email or "").strip().lower()
     if not normalized_email:
+        logger.warning("Login attempt with empty email")
         return None
 
-    user = fetch_staff_user_by_email(normalized_email)
-    if not user:
+    if not db_available():
+        logger.error("Cannot authenticate: database engine not initialized")
         return None
 
-    if not verify_staff_password(password or "", str(user.get("password", ""))):
-        return None
+    db = SessionLocal()
+    try:
+        staff = db.query(Staff).filter(func.lower(Staff.email) == normalized_email).first()
+        if not staff:
+            logger.warning("Login failed: no user found with email '%s'", normalized_email)
+            return None
 
-    if str(user.get("status", "inactive")).strip().lower() != "active":
-        return None
+        if not bcrypt.checkpw((password or "").encode("utf-8"), staff.password_hash.encode("utf-8")):
+            logger.warning("Login failed: invalid password for email '%s'", normalized_email)
+            return None
 
-    return {
-        "id": int(user.get("id", 0) or 0),
-        "name": str(user.get("name", "") or normalized_email.split("@", 1)[0]),
-        "email": normalized_email,
-        "role": str(user.get("role", "staff")).strip().lower(),
-        "is_active": True,
-    }
+        if str(staff.status or "active").strip().lower() != "active":
+            logger.warning("Login failed: user '%s' is inactive", normalized_email)
+            return None
+
+        logger.info("Login successful for '%s' (role=%s)", normalized_email, staff.role)
+        return {
+            "id": staff.id,
+            "name": staff.name or normalized_email.split("@", 1)[0],
+            "email": normalized_email,
+            "role": str(staff.role or "staff").strip().lower(),
+            "is_active": True,
+        }
+    except Exception as exc:
+        logger.exception("Database error during authentication for '%s': %s", normalized_email, exc)
+        return None
+    finally:
+        db.close()

@@ -108,6 +108,45 @@ def register_auth_routes(templates: Jinja2Templates) -> APIRouter:
         response.delete_cookie(CSRF_COOKIE_NAME, path="/")
         return response
 
+    @router.post("/api/login")
+    async def api_login(request: Request):
+        data = await request.json()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
+        
+        user = authenticate_user(email, password)
+        if not user:
+            return {"error": "Invalid email or password"}
+        
+        return {"success": True, "role": user["role"]}
+
+    @router.post("/api/admin/login")
+    async def api_admin_login(request: Request):
+        data = await request.json()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
+        
+        user = authenticate_user(email, password)
+        if not user:
+            return {"error": "Invalid email or password"}
+        
+        if user["role"] != "admin":
+            return {"error": "Invalid email or password"}
+        
+        return {"success": True, "role": user["role"]}
+
+    @router.post("/api/staff/login")
+    async def api_staff_login(request: Request):
+        data = await request.json()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
+        
+        user = authenticate_user(email, password)
+        if not user:
+            return {"error": "Invalid email or password"}
+        
+        return {"success": True, "role": user["role"]}
+
     @router.get("/auth/me")
     async def auth_me(request: Request):
         raw_token = request.cookies.get(AUTH_COOKIE_NAME, "")

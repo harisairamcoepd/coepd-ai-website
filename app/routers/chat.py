@@ -99,7 +99,7 @@ async def contact(payload: ContactPayload):
                 "email": payload.email,
                 "location": payload.location,
                 "interested_domain": payload.interested_domain,
-                "experience": payload.experience,
+
                 "demo_day": payload.demo_day,
                 "whatsapp": payload.whatsapp,
                 "source": payload.source or "webpage",

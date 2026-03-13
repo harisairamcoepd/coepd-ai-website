@@ -18,6 +18,13 @@ function setStatus(message, isError = false) {
   statusEl.style.color = isError ? "#dc2626" : "#475569";
 }
 
+function getErrorMessage(error, fallbackMessage) {
+  if (error && typeof error.message === "string" && error.message.trim()) {
+    return error.message.trim();
+  }
+  return fallbackMessage;
+}
+
 function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -40,12 +47,20 @@ function sourceBadge(source) {
 }
 
 const DOMAIN_BADGE_MAP = {
-  "it": "badge-it",
-  "non-it": "badge-nonit",
-  "bba/bcom": "badge-bba",
-  "mba": "badge-mba",
-  "engineering": "badge-engineering",
-  "fresh graduate": "badge-fresher",
+  "banking": "badge-banking",
+  "finance": "badge-finance",
+  "healthcare": "badge-healthcare",
+  "insurance": "badge-insurance",
+  "retail": "badge-retail",
+  "e-commerce": "badge-ecommerce",
+  "telecom": "badge-telecom",
+  "manufacturing": "badge-manufacturing",
+  "logistics & supply chain": "badge-logistics",
+  "education": "badge-education",
+  "it / software": "badge-it",
+  "pharmaceutical": "badge-pharma",
+  "real estate": "badge-realestate",
+  "energy & utilities": "badge-energy",
   "other": "badge-other",
 };
 
@@ -143,15 +158,24 @@ async function fetchJson(url, fallbackErrorMessage, options = {}) {
       window.location.href = "/admin";
       throw new Error("UNAUTHORIZED");
     }
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`HTTP ${response.status}: ${text}`);
-    }
+
     const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
+    const isJson = contentType.includes("application/json");
+    const payload = isJson ? await response.json() : null;
+
+    if (!response.ok) {
+      const apiMessage = payload?.error || payload?.detail || fallbackErrorMessage || "Request failed";
+      throw new Error(apiMessage);
+    }
+
+    if (!isJson) {
       return {};
     }
-    const data = await response.json();
+
+    const data = payload || {};
+    if (data && data.error) {
+      throw new Error(data.error);
+    }
     if (data && data.success === false) {
       throw new Error(data.error || fallbackErrorMessage || "Request failed");
     }
@@ -203,23 +227,13 @@ function renderChart(datesRaw, countsRaw) {
   });
 }
 
-function leadStatusControl(lead) {
-  const currentStatus = String(lead.working_status || "").trim();
-  return `
-    <div>
-      <input id="status-${lead.id}" value="${escapeHtml(currentStatus)}" placeholder="lead status" />
-      <button class="info status-btn" data-lead-id="${lead.id}">Update</button>
-    </div>
-  `;
-}
-
 function renderLeadsTable() {
   const tbody = document.getElementById("leads-body");
   if (!tbody) return;
 
   const rows = asArray(allLeads);
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:#64748b">No leads found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:#64748b">No leads found.</td></tr>';
     updatePager();
     return;
   }
@@ -251,7 +265,6 @@ function renderLeadsTable() {
         <td>${escapeHtml(lead.email)}</td>
         <td>${escapeHtml(lead.location || "-")}</td>
         <td>${domainBadge(lead.interested_domain)}</td>
-        <td>${escapeHtml(lead.experience || "-")}</td>
         <td>${whatsappCell}</td>
         <td>${sourceBadge(lead.source)}</td>
         <td style="white-space:nowrap">${escapeHtml(createdAt)}</td>
@@ -298,54 +311,50 @@ function renderUsersTable() {
   }).join("");
 }
 
-function renderSourceChart(leads) {
-  const canvas = document.getElementById("sourceChart");
-  if (!canvas || typeof Chart === "undefined") return;
-
-  const counts = {};
-  asArray(leads).forEach((l) => {
-    const src = String(l.source || "unknown").toLowerCase();
-    const key = src === "website_form" ? "webpage" : src;
-    counts[key] = (counts[key] || 0) + 1;
-  });
-
-  const labels = Object.keys(counts);
-  const data = Object.values(counts);
-  const colors = ["#0f766e", "#6366f1", "#9333ea", "#f59e0b", "#ef4444", "#3b82f6"];
-
-  if (sourceChart) { sourceChart.destroy(); sourceChart = null; }
-
-  sourceChart = new Chart(canvas, {
-    type: "doughnut",
-    data: {
-      labels,
-      datasets: [{ data, backgroundColor: colors.slice(0, labels.length), borderWidth: 0 }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: "bottom", labels: { font: { size: 12 } } } },
-    },
-  });
-}
 
 async function loadAnalytics() {
   if (currentRole !== "admin") return;
-  const data = await fetchJson("/admin/analytics", "Unable to fetch analytics");
+
+  const [stats, growth, sources] = await Promise.all([
+    fetchJson("/api/admin/stats", "Unable to fetch stats"),
+    fetchJson("/api/admin/lead-growth", "Unable to fetch lead growth"),
+    fetchJson("/api/admin/source-breakdown", "Unable to fetch source breakdown"),
+  ]);
+
   const totalEl = document.getElementById("total-leads-count");
   const todayEl = document.getElementById("today-leads-count");
   const weekEl = document.getElementById("week-leads-count");
   const monthEl = document.getElementById("month-leads-count");
   const chatbotEl = document.getElementById("chatbot-leads-count");
   const websiteEl = document.getElementById("website-leads-count");
-  if (totalEl) totalEl.textContent = String(Number(data.total_leads) || 0);
-  if (todayEl) todayEl.textContent = String(Number(data.today_leads) || 0);
-  if (weekEl) weekEl.textContent = String(Number(data.week_leads) || 0);
-  if (monthEl) monthEl.textContent = String(Number(data.month_leads) || 0);
-  if (chatbotEl) chatbotEl.textContent = String(Number(data.chatbot_leads) || 0);
-  if (websiteEl) websiteEl.textContent = String(Number(data.website_leads) || 0);
-  renderChart(data.dates, data.counts);
-  renderSourceChart(allLeads);
+  if (totalEl) totalEl.textContent = String(Number(stats.total_leads) || 0);
+  if (todayEl) todayEl.textContent = String(Number(stats.today_leads) || 0);
+  if (weekEl) weekEl.textContent = String(Number(stats.week_leads) || 0);
+  if (monthEl) monthEl.textContent = String(Number(stats.month_leads) || 0);
+  if (chatbotEl) chatbotEl.textContent = String(Number(stats.chatbot_leads) || 0);
+  if (websiteEl) websiteEl.textContent = String(Number(stats.website_leads) || 0);
+
+  renderChart(growth.labels, growth.data);
+
+  const sourceLabels = Object.keys(sources);
+  const sourceData = Object.values(sources);
+  const canvas = document.getElementById("sourceChart");
+  if (canvas && typeof Chart !== "undefined") {
+    const colors = ["#0f766e", "#6366f1", "#9333ea", "#f59e0b", "#ef4444", "#3b82f6"];
+    if (sourceChart) { sourceChart.destroy(); sourceChart = null; }
+    sourceChart = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: sourceLabels,
+        datasets: [{ data: sourceData, backgroundColor: colors.slice(0, sourceLabels.length), borderWidth: 0 }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom", labels: { font: { size: 12 } } } },
+      },
+    });
+  }
 }
 
 async function loadLeads() {
@@ -360,7 +369,7 @@ async function loadLeads() {
   if (search) queryParts.push(`search=${encodeURIComponent(search)}`);
   const query = queryParts.length ? `?${queryParts.join("&")}` : "";
 
-  const payload = await fetchJson(`/admin/leads${query}`, "Unable to refresh leads");
+  const payload = await fetchJson(`/api/admin/leads${query}`, "Unable to refresh leads");
   allLeads = asArray(payload && payload.leads);
   currentPage = 1;
   updateSectionTitle();
@@ -369,7 +378,7 @@ async function loadLeads() {
 
 async function loadUsers() {
   if (currentRole !== "admin") return;
-  const payload = await fetchJson("/admin/staff/list", "Unable to fetch staff users");
+  const payload = await fetchJson("/api/admin/staff", "Unable to fetch staff users");
   allUsers = asArray(payload && payload.staff);
   renderUsersTable();
 }
@@ -383,12 +392,14 @@ async function refreshDashboard() {
 
   try {
     const results = await Promise.allSettled(jobs);
-    const hasFailure = results.some((result) => result.status === "rejected");
+    const failures = results.filter((result) => result.status === "rejected");
+    const hasFailure = failures.length > 0;
     if (hasFailure) {
       setStatus("Unable to refresh some dashboard data.", true);
+      const reason = failures[0]?.reason;
+      alert(getErrorMessage(reason, "Unable to refresh some dashboard data."));
       return;
     }
-    renderSourceChart(allLeads);
     setStatus("Dashboard updated.");
   } finally {
     refreshInFlight = false;
@@ -399,24 +410,8 @@ async function deleteLead(leadId) {
   if (currentRole !== "admin") return;
   if (!confirm("Delete this lead?")) return;
 
-  await fetchJson(`/admin/leads/${leadId}`, "Unable to delete lead", {
+  await fetchJson(`/api/admin/leads/${leadId}`, "Unable to delete lead", {
     method: "DELETE",
-  });
-  await refreshDashboard();
-}
-
-async function updateLeadStatus(leadId) {
-  const input = document.getElementById(`status-${leadId}`);
-  const statusValue = String(input?.value || "").trim();
-  if (!statusValue) {
-    alert("Please enter a status value.");
-    return;
-  }
-
-  await fetchJson(`/admin/leads/${leadId}/status`, "Unable to update lead status", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ working_status: statusValue }),
   });
   await refreshDashboard();
 }
@@ -435,7 +430,7 @@ async function addStaffUser(event) {
     role: "staff",
   };
 
-  await fetchJson("/admin/staff/create", "Unable to create staff", {
+  await fetchJson("/api/admin/staff", "Unable to create staff", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -448,21 +443,21 @@ async function addStaffUser(event) {
 }
 
 async function activateUser(userId) {
-  await fetchJson(`/admin/staff/activate/${userId}`, "Unable to activate user", {
+  await fetchJson(`/api/admin/staff/activate/${userId}`, "Unable to activate user", {
     method: "PUT",
   });
   await loadUsers();
 }
 
 async function deactivateUser(userId) {
-  await fetchJson(`/admin/staff/deactivate/${userId}`, "Unable to deactivate user", {
+  await fetchJson(`/api/admin/staff/deactivate/${userId}`, "Unable to deactivate user", {
     method: "PUT",
   });
   await loadUsers();
 }
 
 async function setUserRole(userId, role) {
-  await fetchJson(`/admin/staff/set-role/${userId}`, "Unable to change role", {
+  await fetchJson(`/api/admin/staff/set-role/${userId}`, "Unable to change role", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ role }),
@@ -472,7 +467,7 @@ async function setUserRole(userId, role) {
 
 async function deleteUser(userId) {
   if (!confirm("Delete this user?")) return;
-  await fetchJson(`/admin/staff/delete/${userId}`, "Unable to delete user", {
+  await fetchJson(`/api/admin/staff/${userId}`, "Unable to delete user", {
     method: "DELETE",
   });
   await loadUsers();
@@ -508,8 +503,8 @@ window.addEventListener("DOMContentLoaded", () => {
       event.preventDefault();
       try {
         await addStaffUser(event);
-      } catch (_error) {
-        alert("Unable to create user.");
+      } catch (error) {
+        alert(getErrorMessage(error, "Unable to create user."));
       }
     });
   }
@@ -523,19 +518,6 @@ window.addEventListener("DOMContentLoaded", () => {
           await deleteLead(leadId);
         } catch (_error) {
           alert("Unable to delete lead.");
-        }
-      }
-      return;
-    }
-
-    const statusBtn = event.target.closest(".status-btn");
-    if (statusBtn) {
-      const leadId = Number(statusBtn.getAttribute("data-lead-id"));
-      if (leadId) {
-        try {
-          await updateLeadStatus(leadId);
-        } catch (_error) {
-          alert("Unable to update lead status.");
         }
       }
       return;

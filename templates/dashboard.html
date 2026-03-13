@@ -63,7 +63,6 @@
             <th>Email</th>
             <th>Location</th>
             <th>Interested Domain</th>
-            <th>Experience</th>
             <th>WhatsApp</th>
             <th>Source</th>
             <th>Date &amp; Time</th>
@@ -78,7 +77,6 @@
             <td>{{ lead.email }}</td>
             <td>{{ lead.location or '-' }}</td>
             <td>{{ lead.interested_domain or '-' }}</td>
-            <td>{{ lead.experience or '-' }}</td>
             <td>
               {% if lead.whatsapp %}
                 <a class="wa-link" href="https://wa.me/91{{ lead.whatsapp }}" target="_blank" rel="noopener">{{ lead.whatsapp }}</a>
@@ -96,7 +94,7 @@
           {% endfor %}
           {% if not leads %}
           <tr>
-            <td colspan="10" class="muted" style="text-align:center;padding:24px">No leads found.</td>
+            <td colspan="9" class="muted" style="text-align:center;padding:24px">No leads found.</td>
           </tr>
           {% endif %}
         </tbody>

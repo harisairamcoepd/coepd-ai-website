@@ -20,7 +20,7 @@
           {{ current_user.name }} &middot; {{ current_user.role | title }}
         </div>
         {% if current_user.role == 'admin' %}
-        <a href="/admin/export">Export CSV</a>
+        <a href="/api/admin/export">Export CSV</a>
         {% endif %}
         <a href="/logout">Logout</a>
       </div>
@@ -79,12 +79,20 @@
       </select>
       <select name="interested_domain" id="filter-domain">
         <option value="all" {% if filter_domain == 'all' %}selected{% endif %}>All Domains</option>
-        <option value="IT" {% if filter_domain == 'IT' %}selected{% endif %}>IT</option>
-        <option value="Non-IT" {% if filter_domain == 'Non-IT' %}selected{% endif %}>Non-IT</option>
-        <option value="BBA/BCom" {% if filter_domain == 'BBA/BCom' %}selected{% endif %}>BBA/BCom</option>
-        <option value="MBA" {% if filter_domain == 'MBA' %}selected{% endif %}>MBA</option>
-        <option value="Engineering" {% if filter_domain == 'Engineering' %}selected{% endif %}>Engineering</option>
-        <option value="Fresh Graduate" {% if filter_domain == 'Fresh Graduate' %}selected{% endif %}>Fresh Graduate</option>
+        <option value="Banking" {% if filter_domain == 'Banking' %}selected{% endif %}>Banking</option>
+        <option value="Finance" {% if filter_domain == 'Finance' %}selected{% endif %}>Finance</option>
+        <option value="Healthcare" {% if filter_domain == 'Healthcare' %}selected{% endif %}>Healthcare</option>
+        <option value="Insurance" {% if filter_domain == 'Insurance' %}selected{% endif %}>Insurance</option>
+        <option value="Retail" {% if filter_domain == 'Retail' %}selected{% endif %}>Retail</option>
+        <option value="E-Commerce" {% if filter_domain == 'E-Commerce' %}selected{% endif %}>E-Commerce</option>
+        <option value="Telecom" {% if filter_domain == 'Telecom' %}selected{% endif %}>Telecom</option>
+        <option value="Manufacturing" {% if filter_domain == 'Manufacturing' %}selected{% endif %}>Manufacturing</option>
+        <option value="Logistics & Supply Chain" {% if filter_domain == 'Logistics & Supply Chain' %}selected{% endif %}>Logistics & Supply Chain</option>
+        <option value="Education" {% if filter_domain == 'Education' %}selected{% endif %}>Education</option>
+        <option value="IT / Software" {% if filter_domain == 'IT / Software' %}selected{% endif %}>IT / Software</option>
+        <option value="Pharmaceutical" {% if filter_domain == 'Pharmaceutical' %}selected{% endif %}>Pharmaceutical</option>
+        <option value="Real Estate" {% if filter_domain == 'Real Estate' %}selected{% endif %}>Real Estate</option>
+        <option value="Energy & Utilities" {% if filter_domain == 'Energy & Utilities' %}selected{% endif %}>Energy & Utilities</option>
         <option value="Other" {% if filter_domain == 'Other' %}selected{% endif %}>Other</option>
       </select>
       <input
@@ -112,7 +120,6 @@
               <th>Email</th>
               <th>Location</th>
               <th>Interested Domain</th>
-              <th>Experience</th>
               <th>WhatsApp</th>
               <th>Source</th>
               <th>Date &amp; Time</th>
@@ -128,7 +135,6 @@
               <td>{{ l.email }}</td>
               <td>{{ l.location or '-' }}</td>
               <td>{{ l.interested_domain or '-' }}</td>
-              <td>{{ l.experience or '-' }}</td>
               <td>
                 {% if l.whatsapp %}
                   <a class="wa-link" href="https://wa.me/91{{ l.whatsapp }}" target="_blank" rel="noopener">{{ l.whatsapp }}</a>
@@ -140,7 +146,7 @@
             </tr>
           {% endfor %}
           {% if not leads %}
-            <tr><td colspan="11" style="text-align:center;padding:24px;color:var(--a-muted)">No leads found.</td></tr>
+            <tr><td colspan="10" style="text-align:center;padding:24px;color:var(--a-muted)">No leads found.</td></tr>
           {% endif %}
           </tbody>
         </table>
@@ -186,9 +192,7 @@
   </div>
 
   <script>
-    window.__API_BASE__ = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-      ? ""
-      : "https://coepd-ai-website.onrender.com";
+    window.__API_BASE__ = "";
   </script>
   <script>
     window.__ADMIN_CONTEXT__ = {

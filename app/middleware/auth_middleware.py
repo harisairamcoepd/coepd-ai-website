@@ -4,6 +4,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.auth import AUTH_COOKIE_NAME, CSRF_COOKIE_NAME, decode_jwt_token
 
+import logging
+auth_logger = logging.getLogger("coepd-api.auth-mw")
+
 
 PUBLIC_PATH_PREFIXES = (
     "/",
@@ -22,6 +25,10 @@ PUBLIC_EXACT_PATHS = {
     "/admin/",
     "/staff",
     "/staff/",
+    "/api/login",
+    "/api/admin/login",
+    "/api/staff/login",
+    "/api/leads",
 }
 
 
@@ -64,51 +71,61 @@ class AuthAndSecurityMiddleware(BaseHTTPMiddleware):
                 request.state.user = None
 
         if request.url.path in PUBLIC_EXACT_PATHS:
-            return await call_next(request)
+            return await self._safe_call_next(request, call_next)
 
         if request.url.path in PUBLIC_PATH_PREFIXES or any(
             request.url.path.startswith(prefix + "/") for prefix in PUBLIC_PATH_PREFIXES
         ):
-            return await call_next(request)
+            return await self._safe_call_next(request, call_next)
 
         path = request.url.path
         method = request.method.upper()
 
-        if path.startswith("/admin") and request.state.user is None:
-            if method == "GET":
+        admin_api_path = path.startswith("/api/admin")
+
+        if (path.startswith("/admin") or admin_api_path) and request.state.user is None:
+            if method == "GET" and not admin_api_path:
                 return RedirectResponse(url="/admin", status_code=302)
             accept = (request.headers.get("accept") or "").lower()
-            if method == "GET" and "text/html" in accept:
+            if method == "GET" and "text/html" in accept and not admin_api_path:
                 return RedirectResponse(url="/admin", status_code=302)
-            return JSONResponse(status_code=401, content={"detail": "Authentication required"})
+            return JSONResponse(status_code=401, content={"error": "Authentication required"})
 
-        if path.startswith("/admin") and request.state.user is not None:
+        if (path.startswith("/admin") or admin_api_path) and request.state.user is not None:
             user_role = str(request.state.user.get("role", "staff")).strip().lower()
             if user_role != "admin":
-                if method == "GET":
+                if method == "GET" and not admin_api_path:
                     return RedirectResponse(url="/admin", status_code=302)
-                return JSONResponse(status_code=403, content={"detail": "Admin access required"})
+                return JSONResponse(status_code=403, content={"error": "Admin access required"})
 
         if path == "/dashboard" and request.state.user is None:
             if method == "GET":
                 return RedirectResponse(url="/staff", status_code=302)
-            return JSONResponse(status_code=401, content={"detail": "Authentication required"})
+            return JSONResponse(status_code=401, content={"error": "Authentication required"})
 
         if path == "/dashboard" and request.state.user is not None:
             user_role = str(request.state.user.get("role", "staff")).strip().lower()
             if user_role != "staff":
                 if method == "GET":
                     return RedirectResponse(url="/staff", status_code=302)
-                return JSONResponse(status_code=403, content={"detail": "Staff access required"})
+                return JSONResponse(status_code=403, content={"error": "Staff access required"})
 
         needs_csrf = method in {"POST", "PUT", "PATCH", "DELETE"} and (
             path.startswith("/admin") or path == "/auth/logout"
-        )
+        ) and path not in PUBLIC_EXACT_PATHS
         if needs_csrf:
             csrf_cookie = request.cookies.get(CSRF_COOKIE_NAME, "")
             csrf_header = request.headers.get("x-csrf-token", "")
             if not csrf_cookie or not csrf_header or csrf_cookie != csrf_header:
-                return JSONResponse(status_code=403, content={"detail": "CSRF validation failed"})
+                return JSONResponse(status_code=403, content={"error": "CSRF validation failed"})
 
-        response = await call_next(request)
+        response = await self._safe_call_next(request, call_next)
         return response
+
+    async def _safe_call_next(self, request: Request, call_next):
+        """Wrap call_next to catch exceptions and return JSON 503."""
+        try:
+            return await call_next(request)
+        except Exception as exc:
+            auth_logger.exception("call_next error for %s %s: %s", request.method, request.url.path, exc)
+            return JSONResponse(status_code=503, content={"error": "Service temporarily unavailable"})

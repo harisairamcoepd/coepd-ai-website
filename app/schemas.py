@@ -10,8 +10,10 @@ class LeadCreate(BaseModel):
     name: str = Field(min_length=2, max_length=80)
     phone: str = Field(min_length=8, max_length=20)
     email: str = Field(min_length=5, max_length=120)
-    city: str = Field(default="", max_length=120)
-    course: str = Field(default="", max_length=120)
+    location: str = Field(default="", max_length=120)
+    interested_domain: str = Field(default="", max_length=120)
+    whatsapp: str = Field(default="", max_length=20)
+    source: str = Field(default="webpage", max_length=50)
 
 
 class LeadResponse(BaseModel):
@@ -21,8 +23,10 @@ class LeadResponse(BaseModel):
     name: str
     phone: str
     email: str
-    city: str | None = None
-    course: str | None = None
+    location: str | None = None
+    interested_domain: str | None = None
+    whatsapp: str | None = None
+    source: str | None = None
     created_at: datetime
 
 
@@ -42,7 +46,6 @@ class LeadPayload(BaseModel):
     email: str = Field(min_length=5, max_length=120)
     location: str = Field(default="", max_length=120)
     interested_domain: str = Field(default="", max_length=120)
-    experience: str = Field(default="", max_length=80)
     demo_day: str = Field(default="", max_length=60)
     whatsapp: str = Field(default="", max_length=20)
     working_status: str = Field(default="", max_length=50)
@@ -57,7 +60,6 @@ class ContactPayload(BaseModel):
     phone: str = Field(min_length=8, max_length=20)
     location: str = Field(default="", max_length=120)
     interested_domain: str = Field(default="", max_length=120)
-    experience: str = Field(default="", max_length=80)
     demo_day: str = Field(default="", max_length=60)
     whatsapp: str = Field(default="", max_length=20)
     source: str = Field(default="webpage", max_length=50)

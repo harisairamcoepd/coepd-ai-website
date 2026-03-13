@@ -118,7 +118,6 @@
       email: String(leadPayload.email || "").trim().toLowerCase(),
       location: String(leadPayload.location || "").trim(),
       interested_domain: String(leadPayload.interested_domain || leadPayload.domain || "").trim(),
-      experience: String(leadPayload.experience || "").trim(),
       whatsapp: String(leadPayload.whatsapp || "").trim(),
       source: "chatbot",
       created_at: new Date().toISOString(),

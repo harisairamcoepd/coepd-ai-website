@@ -141,7 +141,6 @@ def init_db() -> None:
         migrations = {
             "location": "TEXT",
             "interested_domain": "TEXT",
-            "experience": "TEXT",
             "demo_day": "TEXT",
             "whatsapp": "TEXT",
             "source": "TEXT NOT NULL DEFAULT 'webpage'",
@@ -270,13 +269,12 @@ def save_lead(lead: dict[str, Any]) -> int:
                     email,
                     location,
                     interested_domain,
-                    experience,
                     demo_day,
                     whatsapp,
                     source,
                     created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 str(lead.get("name", "")).strip(),
@@ -284,7 +282,6 @@ def save_lead(lead: dict[str, Any]) -> int:
                 normalized_email,
                 str(lead.get("location", "")).strip(),
                 str(lead.get("interested_domain", lead.get("domain", ""))).strip(),
-                str(lead.get("experience", "")).strip(),
                 str(lead.get("demo_day", "")).strip(),
                 str(lead.get("whatsapp", "")).strip(),
                 normalized_source,
@@ -647,12 +644,11 @@ def fetch_leads(
                 "lower(email) LIKE ? OR "
                 "lower(phone) LIKE ? OR "
                 "lower(ifnull(location, '')) LIKE ? OR "
-                "lower(ifnull(interested_domain, '')) LIKE ? OR "
-                "lower(ifnull(experience, '')) LIKE ?"
+                "lower(ifnull(interested_domain, '')) LIKE ?"
                 ")"
             )
             like_value = f"%{normalized_search}%"
-            params.extend([like_value] * 6)
+            params.extend([like_value] * 5)
 
         sql = "SELECT * FROM leads"
         if where_clauses:
@@ -684,12 +680,11 @@ def fetch_dashboard_leads(
             "lower(email) LIKE ? OR "
             "lower(phone) LIKE ? OR "
             "lower(ifnull(location, '')) LIKE ? OR "
-            "lower(ifnull(interested_domain, '')) LIKE ? OR "
-            "lower(ifnull(experience, '')) LIKE ?"
+            "lower(ifnull(interested_domain, '')) LIKE ?"
             ")"
         )
         like_value = f"%{normalized_search}%"
-        params.extend([like_value] * 6)
+        params.extend([like_value] * 5)
 
     with db_cursor() as (_conn, cur):
         cur.execute(f"SELECT COUNT(*) AS total_count FROM leads {where_clause}", tuple(params))
@@ -705,7 +700,6 @@ def fetch_dashboard_leads(
                 phone,
                 location,
                 interested_domain,
-                experience,
                 whatsapp,
                 CASE
                     WHEN lower(ifnull(source, '')) IN ('website', 'website_form') THEN 'webpage'
@@ -801,7 +795,6 @@ def export_leads_to_csv(filename: str) -> str:
         "email",
         "location",
         "interested_domain",
-        "experience",
         "whatsapp",
         "source",
         "created_at",

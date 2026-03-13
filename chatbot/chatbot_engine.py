@@ -24,12 +24,20 @@ FEES_FOLLOWUP_ACTIONS = [
 ]
 
 DOMAIN_OPTIONS = [
-    {"label": "IT", "value": "IT"},
-    {"label": "Non-IT", "value": "Non-IT"},
-    {"label": "BBA/BCom", "value": "BBA/BCom"},
-    {"label": "MBA", "value": "MBA"},
-    {"label": "Engineering", "value": "Engineering"},
-    {"label": "Fresh Graduate", "value": "Fresh Graduate"},
+    {"label": "Banking", "value": "Banking"},
+    {"label": "Finance", "value": "Finance"},
+    {"label": "Healthcare", "value": "Healthcare"},
+    {"label": "Insurance", "value": "Insurance"},
+    {"label": "Retail", "value": "Retail"},
+    {"label": "E-Commerce", "value": "E-Commerce"},
+    {"label": "Telecom", "value": "Telecom"},
+    {"label": "Manufacturing", "value": "Manufacturing"},
+    {"label": "Logistics & Supply Chain", "value": "Logistics & Supply Chain"},
+    {"label": "Education", "value": "Education"},
+    {"label": "IT / Software", "value": "IT / Software"},
+    {"label": "Pharmaceutical", "value": "Pharmaceutical"},
+    {"label": "Real Estate", "value": "Real Estate"},
+    {"label": "Energy & Utilities", "value": "Energy & Utilities"},
     {"label": "Other", "value": "Other"},
 ]
 
@@ -41,9 +49,120 @@ DOMAIN_FOLLOWUP_ACTIONS = [
 ]
 
 DOMAIN_RESPONSES = {
-    "it": (
+    "banking": (
+        "Great choice \U0001f44d\n"
+        "Banking is one of the **top employers** of Business Analysts.\n\n"
+        "**BA Roles in Banking:**\n\n"
+        "\u2022 Banking Business Analyst\n"
+        "\u2022 Credit Risk Analyst\n"
+        "\u2022 Payments & Fintech Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 Core Banking Transformation\n"
+        "\u2022 Digital Payments Platform\n"
+        "\u2022 KYC Automation System"
+    ),
+    "finance": (
+        "Excellent \U0001f44d\n"
+        "Finance companies need BAs to streamline reporting, compliance, and risk management.\n\n"
+        "**BA Roles in Finance:**\n\n"
+        "\u2022 Financial Business Analyst\n"
+        "\u2022 Investment Operations Analyst\n"
+        "\u2022 Regulatory Compliance Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 Portfolio Management Dashboard\n"
+        "\u2022 Regulatory Reporting Automation"
+    ),
+    "healthcare": (
+        "Great choice \U0001f44d\n"
+        "Healthcare is rapidly digitizing — BAs are critical for system design and compliance.\n\n"
+        "**BA Roles in Healthcare:**\n\n"
+        "\u2022 Clinical Business Analyst\n"
+        "\u2022 Health Informatics Analyst\n"
+        "\u2022 EMR/EHR Implementation Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 Hospital Management System\n"
+        "\u2022 Patient Portal Platform"
+    ),
+    "insurance": (
+        "Great choice \U0001f44d\n"
+        "Insurance companies rely on BAs for claims automation and policy management.\n\n"
+        "**BA Roles in Insurance:**\n\n"
+        "\u2022 Insurance Business Analyst\n"
+        "\u2022 Claims Process Analyst\n"
+        "\u2022 Underwriting Systems Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 Claims Processing Automation\n"
+        "\u2022 Policy Administration System"
+    ),
+    "retail": (
+        "Great choice \U0001f44d\n"
+        "Retail businesses depend on data-driven BAs for inventory, CRM, and analytics.\n\n"
+        "**BA Roles in Retail:**\n\n"
+        "\u2022 Retail Business Analyst\n"
+        "\u2022 Merchandising Analyst\n"
+        "\u2022 Customer Analytics Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 Retail Analytics Platform\n"
+        "\u2022 Inventory Management System"
+    ),
+    "e-commerce": (
+        "Excellent \U0001f44d\n"
+        "E-Commerce companies need BAs for platform optimization, logistics, and user experience.\n\n"
+        "**BA Roles in E-Commerce:**\n\n"
+        "\u2022 E-Commerce Business Analyst\n"
+        "\u2022 Product Analyst\n"
+        "\u2022 Conversion Optimization Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 E-Commerce Platform Redesign\n"
+        "\u2022 Order Fulfillment Automation"
+    ),
+    "telecom": (
+        "Great choice \U0001f44d\n"
+        "Telecom companies hire BAs for network planning, billing, and CRM systems.\n\n"
+        "**BA Roles in Telecom:**\n\n"
+        "\u2022 Telecom Business Analyst\n"
+        "\u2022 Billing Systems Analyst\n"
+        "\u2022 Network Planning Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 Billing System Migration\n"
+        "\u2022 Customer Churn Analytics"
+    ),
+    "manufacturing": (
+        "Great choice \U0001f44d\n"
+        "Manufacturing relies on BAs for ERP, supply chain optimization, and quality control.\n\n"
+        "**BA Roles in Manufacturing:**\n\n"
+        "\u2022 Manufacturing Business Analyst\n"
+        "\u2022 Supply Chain Analyst\n"
+        "\u2022 Quality & Process Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 ERP Implementation\n"
+        "\u2022 Supply Chain Optimization"
+    ),
+    "logistics & supply chain": (
+        "Excellent \U0001f44d\n"
+        "Logistics companies need BAs for route optimization, warehouse management, and tracking systems.\n\n"
+        "**BA Roles in Logistics:**\n\n"
+        "\u2022 Logistics Business Analyst\n"
+        "\u2022 Warehouse Systems Analyst\n"
+        "\u2022 Fleet Management Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 Warehouse Management System\n"
+        "\u2022 Last-Mile Delivery Platform"
+    ),
+    "education": (
+        "Great choice \U0001f44d\n"
+        "EdTech and universities need BAs for LMS, student management, and analytics.\n\n"
+        "**BA Roles in Education:**\n\n"
+        "\u2022 EdTech Business Analyst\n"
+        "\u2022 Student Systems Analyst\n"
+        "\u2022 Learning Analytics Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 Learning Management System\n"
+        "\u2022 Student Enrollment Portal"
+    ),
+    "it / software": (
         "That's great \U0001f44d\n"
-        "IT is the largest employer of Business Analysts worldwide.\n\n"
+        "IT / Software is the **largest employer** of Business Analysts worldwide.\n\n"
         "**BA Roles in IT:**\n\n"
         "\u2022 IT Business Analyst\n"
         "\u2022 Systems Analyst\n"
@@ -51,65 +170,47 @@ DOMAIN_RESPONSES = {
         "\u2022 Data Analyst\n\n"
         "**Example Projects:**\n\n"
         "\u2022 Enterprise CRM System\n"
-        "\u2022 ERP Implementation\n"
         "\u2022 Cloud Migration Platform\n"
         "\u2022 Agile Project Dashboard"
     ),
-    "non-it": (
-        "That's great \U0001f44d\n"
-        "Business Analysts are in high demand across **Non-IT domains** like Finance, Healthcare, Retail, and Manufacturing.\n\n"
-        "**BA Roles in Non-IT:**\n\n"
-        "\u2022 Business Process Analyst\n"
-        "\u2022 Operations Analyst\n"
-        "\u2022 Domain-Specific Business Analyst\n\n"
+    "pharmaceutical": (
+        "Great choice \U0001f44d\n"
+        "Pharma companies need BAs for regulatory compliance, clinical trials, and drug supply chain.\n\n"
+        "**BA Roles in Pharma:**\n\n"
+        "\u2022 Pharma Business Analyst\n"
+        "\u2022 Clinical Data Analyst\n"
+        "\u2022 Drug Safety Analyst\n\n"
         "**Example Projects:**\n\n"
-        "\u2022 Supply Chain Optimization\n"
-        "\u2022 Hospital Management System\n"
-        "\u2022 Retail Analytics Platform"
+        "\u2022 Clinical Trial Management\n"
+        "\u2022 Drug Supply Chain System"
     ),
-    "bba/bcom": (
-        "That's great \U0001f44d\n"
-        "BBA/BCom graduates have strong business fundamentals — perfect for Business Analyst roles.\n\n"
-        "**Your Advantages:**\n\n"
-        "\u2022 Strong understanding of business processes\n"
-        "\u2022 Financial & analytical skills\n"
-        "\u2022 Management concepts\n\n"
-        "Our program will add the **IT tools & project skills** needed for BA roles."
+    "real estate": (
+        "Great choice \U0001f44d\n"
+        "Real estate firms need BAs for property management, CRM, and investment analytics.\n\n"
+        "**BA Roles in Real Estate:**\n\n"
+        "\u2022 Real Estate Business Analyst\n"
+        "\u2022 Property Management Analyst\n"
+        "\u2022 Investment Analytics Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 Property Listing Platform\n"
+        "\u2022 Tenant Management System"
     ),
-    "mba": (
+    "energy & utilities": (
         "Excellent \U0001f44d\n"
-        "MBA graduates are highly valued as Business Analysts.\n\n"
-        "**Your Advantages:**\n\n"
-        "\u2022 Strategic thinking & leadership skills\n"
-        "\u2022 Cross-functional business knowledge\n"
-        "\u2022 Stakeholder management capabilities\n\n"
-        "Our program will enhance your profile with **real-time BA tools & project experience**."
-    ),
-    "engineering": (
-        "That's great \U0001f44d\n"
-        "Engineers have excellent analytical thinking — ideal for IT Business Analyst roles.\n\n"
-        "**BA Roles for Engineers:**\n\n"
-        "\u2022 IT Business Analyst\n"
-        "\u2022 Technical Business Analyst\n"
-        "\u2022 Systems Analyst\n"
-        "\u2022 Data Analyst\n\n"
-        "Our program bridges the gap between **engineering skills and BA expertise**."
-    ),
-    "fresh graduate": (
-        "That's perfectly fine \U0001f44d\n"
-        "Many fresh graduates transition into Business Analysis.\n\n"
-        "You will work on projects like:\n\n"
-        "\u2022 Banking Application\n"
-        "\u2022 E-commerce Platform\n"
-        "\u2022 Healthcare System\n"
-        "\u2022 Supply Chain System\n\n"
-        "These projects help you gain **real-time BA experience**."
+        "Energy & Utilities companies hire BAs for grid management, billing, and sustainability analytics.\n\n"
+        "**BA Roles in Energy:**\n\n"
+        "\u2022 Energy Business Analyst\n"
+        "\u2022 Smart Grid Analyst\n"
+        "\u2022 Sustainability Analyst\n\n"
+        "**Example Projects:**\n\n"
+        "\u2022 Smart Metering Platform\n"
+        "\u2022 Energy Trading Dashboard"
     ),
     "other": (
         "That's absolutely fine \U0001f44d\n"
         "Business Analysts work across **all industries**.\n\n"
-        "No matter your background, the COEPD program will help you transition into a BA role "
-        "with **real-time projects** based on your domain."
+        "No matter your domain, the COEPD program will help you transition into a BA role "
+        "with **real-time projects** based on your industry."
     ),
 }
 
@@ -317,26 +418,18 @@ def get_bot_response(user_message: str, user_id: str = "web_user") -> dict[str, 
             )
             save_session(user_id, "lead_domain_followup", data)
             return _ui(domain_text, options=DOMAIN_FOLLOWUP_ACTIONS, progress=65)
-        save_session(user_id, "lead_experience", data)
-        return _ui("How many years of experience do you have?", placeholder="e.g. Fresher / 1 year / 3 years", progress=75)
+        save_session(user_id, "lead_whatsapp", data)
+        return _ui("What is your WhatsApp Number?", placeholder="10-digit WhatsApp number", progress=75)
 
     if stage == "lead_domain_followup":
         intent = detect_intent(message)
         if intent in FAQ_ANSWERS:
             text = FAQ_ANSWERS[intent]
-            text += "\n\nNow, please share your **Experience** (Fresher / years)."
-            save_session(user_id, "lead_experience", data)
-            return _ui(text, placeholder="e.g. Fresher / 1 year", progress=75)
-        save_session(user_id, "lead_experience", data)
-        return _ui("How many years of experience do you have?", placeholder="e.g. Fresher / 1 year / 3 years", progress=75)
-
-    if stage == "lead_experience":
-        exp = message.strip()
-        if len(exp) < 2:
-            return _ui("Please share your experience level to continue.", placeholder="e.g. Fresher / 2 years", progress=75)
-        data["experience"] = exp
+            text += "\n\nNow, please share your **WhatsApp Number**."
+            save_session(user_id, "lead_whatsapp", data)
+            return _ui(text, placeholder="10-digit WhatsApp number", progress=75)
         save_session(user_id, "lead_whatsapp", data)
-        return _ui("What is your WhatsApp Number?", placeholder="10-digit WhatsApp number", progress=85)
+        return _ui("What is your WhatsApp Number?", placeholder="10-digit WhatsApp number", progress=75)
 
     if stage == "lead_whatsapp":
         if not _valid_phone(message):
@@ -357,7 +450,6 @@ def get_bot_response(user_message: str, user_id: str = "web_user") -> dict[str, 
             "email": data.get("email", ""),
             "location": data.get("location", ""),
             "interested_domain": data.get("interested_domain", ""),
-            "experience": data.get("experience", ""),
             "whatsapp": data.get("whatsapp", ""),
             "source": "chatbot",
         }

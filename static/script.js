@@ -215,7 +215,7 @@
       if (!ph) { showErr("phone", "Phone number is required"); ok = false; }
       else if (!phoneRe.test(ph)) { showErr("phone", "Enter a valid phone number"); ok = false; }
 
-      if (!val("interested_domain")) { showErr("interested_domain", "Please select a domain"); ok = false; }
+      if (!val("interested_domain")) { showErr("interested_domain", "Please select your domain"); ok = false; }
 
       return ok;
     }
