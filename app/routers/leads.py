@@ -14,8 +14,6 @@ router = APIRouter(prefix="/api", tags=["leads"])
 
 @router.post("/leads", status_code=201)
 def create_lead(payload: LeadCreate, db: Session = Depends(get_db)):
-    if db is None:
-        return JSONResponse(status_code=503, content={"error": "Database connection unavailable"})
     try:
         normalized_source = (payload.source or "webpage").strip().lower()
         if normalized_source in ("website", "website_form"):
@@ -54,8 +52,6 @@ def create_lead(payload: LeadCreate, db: Session = Depends(get_db)):
 
 @router.get("/leads")
 def get_leads(db: Session = Depends(get_db)):
-    if db is None:
-        return JSONResponse(status_code=503, content={"error": "Database connection unavailable"})
     try:
         leads = db.query(Lead).order_by(Lead.created_at.desc()).all()
         return [

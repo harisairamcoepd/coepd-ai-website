@@ -2,65 +2,43 @@ import logging
 import os
 from collections.abc import Generator
 
+
+# ── SAFE POSTGRESQL CONNECTION ──
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 load_dotenv()
 
-logger = logging.getLogger("coepd-api")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL not found")
 
-DATABASE_URL = os.getenv("DATABASE_URL", "")
+# Render sometimes uses postgres:// instead of postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-DB_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "10"))
-DB_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "20"))
-DB_POOL_PRE_PING = os.getenv("DB_POOL_PRE_PING", "true").strip().lower() == "true"
-DB_POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "1800"))
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True
+)
 
-# ── Helpers ──────────────────────────────────────────────────────────────
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
 
-_active_url: str = ""
+Base = declarative_base()
 
-
-
-
-
-    kwargs: dict = {"pool_pre_ping": True}
-    kwargs.update(
-        pool_size=DB_POOL_SIZE,
-        max_overflow=DB_MAX_OVERFLOW,
-        pool_recycle=DB_POOL_RECYCLE,
-    )
-    return kwargs
-
-
-def _try_connect(url: str, label: str):
-    """Try to create & verify an engine. Returns engine or None."""
+# ── DATABASE SESSION DEPENDENCY ──
+def get_db():
+    db = SessionLocal()
     try:
-        eng = create_engine(url, **_engine_kwargs_for(url))
-        with eng.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        logger.info("Connected to %s", label)
-        return eng
-    except Exception as exc:
-        logger.warning("Connection to %s failed: %s", label, exc)
-        return None
-
-
-# ── Engine initialisation (with retry + fallback) ────────────────────────
-
-
-engine = None
-if DATABASE_URL:
-    engine = _try_connect(DATABASE_URL, "Supabase PostgreSQL")
-    if engine is None:
-        logger.warning("Retrying Supabase connection…")
-        engine = _try_connect(DATABASE_URL, "Supabase PostgreSQL (retry)")
-    if engine is not None:
-        _active_url = DATABASE_URL
-    else:
-        logger.critical("ALL database connections failed — app will have no DB")
-
+        yield db
+    finally:
+        db.close()
 
 def db_available() -> bool:
     """Return True when the database engine has been initialised."""
@@ -87,26 +65,40 @@ Base = declarative_base()
             if eng is not None:
                 engine = eng
                 _active_url = DATABASE_URL
-                SessionLocal.configure(bind=engine)
-        if engine is None:
-            logger.error("init_engine: could not connect to PostgreSQL database")
-            return None
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created / verified (PostgreSQL)")
-    return engine
 
+                # ── SAFE DATABASE CONNECTION ──
+                import os
+                from sqlalchemy import create_engine
+                from sqlalchemy.orm import sessionmaker, declarative_base
+                from dotenv import load_dotenv
 
-# ── Dependency ───────────────────────────────────────────────────────────
+                load_dotenv()
 
+                DATABASE_URL = os.getenv("DATABASE_URL")
+                if not DATABASE_URL:
+                    raise RuntimeError("DATABASE_URL not found")
 
-def get_db() -> Generator[Session | None, None, None]:
-    """Yield a DB session, or ``None`` when no engine is bound."""
-    if not db_available():
-        logger.error("Database engine not initialized — cannot provide DB session")
-        yield None
-        return
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+                # Render sometimes provides 'postgres://' instead of 'postgresql://' for SQLAlchemy
+                if DATABASE_URL.startswith("postgres://"):
+                    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+                engine = create_engine(
+                    DATABASE_URL,
+                    pool_pre_ping=True
+                )
+
+                SessionLocal = sessionmaker(
+                    autocommit=False,
+                    autoflush=False,
+                    bind=engine
+                )
+
+                Base = declarative_base()
+
+                # ── ADD DATABASE SESSION DEPENDENCY ──
+                def get_db():
+                    db = SessionLocal()
+                    try:
+                        yield db
+                    finally:
+                        db.close()

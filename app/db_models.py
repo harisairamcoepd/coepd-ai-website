@@ -30,6 +30,7 @@ def format_ist(dt: datetime | None) -> str:
     return ist_dt.strftime("%Y-%m-%d %H:%M:%S IST")
 
 
+
 class Lead(Base):
     __tablename__ = "leads"
 
@@ -40,8 +41,8 @@ class Lead(Base):
     location = Column(Text)
     interested_domain = Column(Text)
     whatsapp = Column(Text)
-    source = Column(Text, default="webpage")
-    created_at = Column(DateTime(timezone=True), default=get_ist_now, server_default=func.now())
+    source = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class Staff(Base):
