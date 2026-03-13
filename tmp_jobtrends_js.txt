@@ -1,0 +1,329 @@
+/* job-trends.js
+   Premium-looking Chart.js dashboard with domain list (120), year filtering,
+   domain picker + search, animated pie charts, top-N aggregation, and responsive UI.
+*/
+
+(() => {
+  // --- Utilities: seeded random for reproducible demo data ---
+  function seeded(seed) {
+    let s = typeof seed === 'number' ? seed : 1234567;
+    return function() {
+      s = (1103515245 * s + 12345) % 2147483648;
+      return s / 2147483648;
+    };
+  }
+
+  // --- Domain list (120 realistic industries) ---
+  const DOMAINS = [
+    "BFSI","FinTech","Healthcare","Insurance","Retail","E-Commerce","Supply Chain","Manufacturing","Telecom",
+    "Education Technology","Energy","Oil & Gas","Real Estate","Logistics","Aviation","Pharmaceutical",
+    "Gaming","Travel & Hospitality","Government Tech","Cybersecurity","Artificial Intelligence","Machine Learning",
+    "Blockchain","Cloud Computing","Data Analytics","IoT","Smart Cities","Digital Marketing","HR Tech","AgriTech",
+    "Climate Tech","Media & Entertainment","Automotive","Electric Vehicles","Semiconductors","Biotech","Nanotech",
+    "Chemical","Construction","Legal Tech","Payments","Cards & Payments","Customer Support Tech","SaaS",
+    "AdTech","MarTech","Retail Tech","Beauty Tech","Wellness","Sports Tech","Fitness","Food & Beverage",
+    "CPG","Hospitality","Cannabis","Public Sector","NGO","Nonprofit","Telemedicine","Diagnostics","Clinical Trials",
+    "Medical Devices","Wearables","3D Printing","Robotics","Industrial Automation","Defense","Space Tech",
+    "Satellite","Quantum Computing","Augmented Reality","Virtual Reality","Entertainment Tech","Music Tech",
+    "Publishing","Bookstore","Libraries","Photography","Printing","Logistics Tech","Cold Chain","Freight Forwarding",
+    "Maritime","Shipping","Ports","Rail","Last Mile Delivery","Fleet Management","Property Tech (PropTech)",
+    "Building Materials","HVAC","Smart Home","Home Services","Interior Design","Architecture","Landscape",
+    "Waste Management","Water Tech","Recycling","Environmental Services","Renewables","Solar","Wind",
+    "Hydrogen","Nuclear","Mining","Metals","Precious Metals","Jewelry","Textiles","Apparel","Footwear",
+    "Luxury Goods","Retail Analytics","Retail Ops","Subscription Services","On-demand Services","Marketplace",
+    "Gig Economy","Shared Mobility","Urban Mobility","Parking Tech","Transport Aids","Clinical Informatics"
+  ];
+
+  // --- Static location and experience buckets (per year demo variations) ---
+  const CITIES = ["Hyderabad","Bangalore","Pune","Mumbai","Chennai","Delhi","Kolkata","Ahmedabad","Noida","Gurgaon"];
+  const EXPERIENCES = ["Fresher","1-2 Years","2-4 Years","5-7 Years","8-10 Years","10+ Years"];
+
+  // DOM elements
+  const yearSelect = document.getElementById('year-select');
+  const openPicker = document.getElementById('open-domain-picker');
+  const picker = document.getElementById('domain-picker');
+  const pickerList = document.getElementById('picker-list');
+  const pickerSearch = document.getElementById('picker-search');
+  const pickerClose = document.getElementById('picker-close');
+  const pickerApply = document.getElementById('picker-apply');
+  const pickerSelectAll = document.getElementById('picker-select-all');
+  const pickerSelectNone = document.getElementById('picker-select-none');
+  const domainSearch = document.getElementById('domain-search');
+  const resetDomainsBtn = document.getElementById('reset-domains');
+  const selectedCountEl = document.getElementById('selected-count');
+  const loadingEl = document.getElementById('jt-loading');
+  const lastUpdatedEl = document.getElementById('jt-last-updated');
+
+  // Charts
+  let chartCities, chartExperience, chartDomains;
+
+  // State
+  const state = {
+    year: parseInt(yearSelect.value,10) || 2026,
+    selectedDomains: new Set(), // if empty = all
+    dataByYear: {}, // filled with generated demo data
+  };
+
+  // --- Data generation (deterministic per domain+year) ---
+  function generateDemoData() {
+    [2023,2024,2025,2026].forEach(year => {
+      const rnd = seeded(year * 7919);
+      const domains = DOMAINS.map((d,i) => {
+        const r = seeded(i + year)();
+        // jobs between 200 and 9000 shaped by domain index & random
+        const base = 200 + Math.round(1 + Math.sin(i * 0.13 + year) * 1000 + r * 7000);
+        const jobs = Math.max(50, Math.round(base * (0.9 + seeded(i+year+7)())));
+        const growth = Math.round((seeded(i+year+3)()*30 - 4) * 10)/10; // -4% .. +26%
+        return { domain: d, jobs, growth, year };
+      });
+      // normalize some variations
+      state.dataByYear[year] = domains;
+    });
+    lastUpdatedEl.textContent = `Last updated: ${new Date().toLocaleString()}`;
+  }
+
+  // --- Helper: aggregate domains for chart top N + other ---
+  function buildDomainChartData(domainsArr, topN = 12) {
+    const sorted = [...domainsArr].sort((a,b)=>b.jobs - a.jobs);
+    const top = sorted.slice(0, topN);
+    const rest = sorted.slice(topN);
+    const otherSum = rest.reduce((s,x)=>s + x.jobs,0);
+    const labels = top.map(d=>d.domain);
+    const data = top.map(d=>d.jobs);
+    if (otherSum > 0) { labels.push('Other'); data.push(otherSum); }
+    return { labels, data };
+  }
+
+  // --- City & experience demo aggregates (per year) ---
+  function buildCityDataForYear(year) {
+    const seed = seeded(year + 47);
+    const vals = CITIES.map((c,i) => Math.max(30, Math.round(100 + seed() * (1000 + i*40))));
+    return { labels: CITIES, data: vals };
+  }
+  function buildExperienceDataForYear(year) {
+    const seed = seeded(year + 99);
+    const vals = EXPERIENCES.map((e,i) => Math.max(20, Math.round(50 + seed() * (800 + i*80))));
+    return { labels: EXPERIENCES, data: vals };
+  }
+
+  // --- Chart creation ---
+  function createDoughnut(ctx, labels, data, opts = {}) {
+    return new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: generatePalette(data.length, opts.hue || 210),
+          hoverOffset: 12,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 800, easing: 'easeOutCubic' },
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#334155' } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                const total = ctx.dataset.data.reduce((s,x)=>s+x,0);
+                const value = ctx.parsed || 0;
+                const pct = total ? (value/total*100).toFixed(1) : '0.0';
+                return `${ctx.label}: ${value.toLocaleString()} (${pct}%)`;
+              }
+            }
+          }
+        },
+        hover: {
+          mode: 'nearest'
+        }
+      }
+    });
+  }
+
+  // Palette
+  function generatePalette(n, baseHue=210){
+    const out = [];
+    for(let i=0;i<n;i++){
+      const hue = (baseHue + i*27) % 360;
+      out.push(`hsl(${hue} 76% ${50 - Math.min(14, i)}%)`);
+    }
+    return out;
+  }
+
+  // --- Render / update charts ---
+  function renderCharts() {
+    showLoading(true);
+    setTimeout(()=>{ // small delay so spinner is visible and animations feel smooth
+      const year = state.year;
+      const rawDomains = state.dataByYear[year] || [];
+      // filter by selected domains (if none selected, use all)
+      const selected = [...state.selectedDomains];
+      let domainsFiltered = rawDomains;
+      if (selected.length) {
+        const selSet = new Set(selected);
+        domainsFiltered = rawDomains.filter(d => selSet.has(d.domain));
+      }
+
+      // If search active, filter by domainSearch input
+      const q = (domainSearch.value || '').trim().toLowerCase();
+      if (q) domainsFiltered = domainsFiltered.filter(d => d.domain.toLowerCase().includes(q));
+
+      // Domains chart: top-N aggregation
+      const domainData = buildDomainChartData(domainsFiltered, 14);
+
+      // Cities & experience
+      const city = buildCityDataForYear(year);
+      const exp = buildExperienceDataForYear(year);
+
+      // Update or create charts
+      if (!chartCities) {
+        const ctx = document.getElementById('chart-cities').getContext('2d');
+        chartCities = createDoughnut(ctx, city.labels, city.data, { hue: 200 });
+      } else {
+        chartCities.data.labels = city.labels;
+        chartCities.data.datasets[0].data = city.data;
+        chartCities.data.datasets[0].backgroundColor = generatePalette(city.data.length, 200);
+        chartCities.update();
+      }
+
+      if (!chartExperience) {
+        const ctx = document.getElementById('chart-experience').getContext('2d');
+        chartExperience = createDoughnut(ctx, exp.labels, exp.data, { hue: 120 });
+      } else {
+        chartExperience.data.labels = exp.labels;
+        chartExperience.data.datasets[0].data = exp.data;
+        chartExperience.data.datasets[0].backgroundColor = generatePalette(exp.data.length, 120);
+        chartExperience.update();
+      }
+
+      if (!chartDomains) {
+        const ctx = document.getElementById('chart-domains').getContext('2d');
+        chartDomains = createDoughnut(ctx, domainData.labels, domainData.data, { hue: 260 });
+      } else {
+        chartDomains.data.labels = domainData.labels;
+        chartDomains.data.datasets[0].data = domainData.data;
+        chartDomains.data.datasets[0].backgroundColor = generatePalette(domainData.data.length, 260);
+        chartDomains.update();
+      }
+
+      // Meta
+      selectedCountEl.textContent = state.selectedDomains.size ? `${state.selectedDomains.size} domain(s) selected` : `Showing all domains (${DOMAINS.length})`;
+
+      // Reveal with fade
+      fadeInCards();
+
+      showLoading(false);
+    }, 420);
+  }
+
+  function fadeInCards(){
+    document.querySelectorAll('.jt-card').forEach((el,idx)=>{
+      el.style.opacity = 0;
+      el.style.transform = 'translateY(6px)';
+      setTimeout(()=>{ el.style.transition='transform .36s ease, opacity .36s ease'; el.style.opacity=1; el.style.transform='none'; }, idx*80 );
+    });
+  }
+
+  // --- Domain picker UI ---
+  function openDomainPicker(){
+    picker.classList.remove('hidden');
+    picker.setAttribute('aria-hidden','false');
+    populatePicker('');
+    pickerSearch.focus();
+  }
+
+  function closeDomainPicker(){
+    picker.classList.add('hidden');
+    picker.setAttribute('aria-hidden','true');
+  }
+
+  function populatePicker(filter){
+    pickerList.innerHTML = '';
+    const q = (filter || '').toLowerCase();
+    DOMAINS.forEach(d=>{
+      if (q && !d.toLowerCase().includes(q)) return;
+      const div = document.createElement('div');
+      div.className = 'picker-item';
+      div.tabIndex = 0;
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.dataset.domain = d;
+      chk.checked = state.selectedDomains.size ? state.selectedDomains.has(d) : true;
+      const lbl = document.createElement('div');
+      lbl.textContent = d;
+      div.appendChild(chk);
+      div.appendChild(lbl);
+      div.addEventListener('click', ()=> { chk.checked = !chk.checked; });
+      pickerList.appendChild(div);
+    });
+  }
+
+  function applyPicker(){
+    const boxes = pickerList.querySelectorAll('input[type=checkbox]');
+    const sel = new Set();
+    boxes.forEach(b=>{
+      if (b.checked) sel.add(b.dataset.domain);
+    });
+    // If all are checked, treat as empty set (means all)
+    if (sel.size === DOMAINS.length) {
+      state.selectedDomains = new Set();
+    } else {
+      state.selectedDomains = sel;
+    }
+    closeDomainPicker();
+    renderCharts();
+  }
+
+  // --- Loading control ---
+  function showLoading(flag){
+    if (flag) loadingEl.classList.remove('hidden'); else loadingEl.classList.add('hidden');
+  }
+
+  // --- Bind events ---
+  function bind() {
+    openPicker.addEventListener('click', openDomainPicker);
+    pickerClose.addEventListener('click', closeDomainPicker);
+    pickerApply.addEventListener('click', applyPicker);
+    pickerSelectAll.addEventListener('click', ()=> {
+      pickerList.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=true);
+    });
+    pickerSelectNone.addEventListener('click', ()=> {
+      pickerList.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+    });
+
+    pickerSearch.addEventListener('input', (e)=> populatePicker(e.target.value));
+    domainSearch.addEventListener('input', ()=> renderCharts());
+
+    yearSelect.addEventListener('change', (e)=> { state.year = parseInt(e.target.value,10); renderCharts(); });
+
+    resetDomainsBtn.addEventListener('click', ()=> {
+      state.selectedDomains = new Set();
+      domainSearch.value = '';
+      renderCharts();
+    });
+
+    // keyboard escape to close picker
+    document.addEventListener('keydown', (ev)=>{
+      if (ev.key === 'Escape' && !picker.classList.contains('hidden')) closeDomainPicker();
+    });
+
+    // click outside panel to close
+    picker.addEventListener('click', (ev)=>{
+      if (ev.target === picker) closeDomainPicker();
+    });
+  }
+
+  // --- Init ---
+  function init(){
+    generateDemoData();
+    bind();
+    // default: all domains (state.selectedDomains empty)
+    renderCharts();
+  }
+
+  // Run
+  document.addEventListener('DOMContentLoaded', init);
+})();
