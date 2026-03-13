@@ -29,8 +29,6 @@ ADMIN_LOGIN_PASSWORD = os.getenv("ADMIN_LOGIN_PASSWORD", "admin")
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
-
-
 def create_token(email: str, role: str, user_id: int | None = None, name: str | None = None) -> str:
     now = utc_now()
     payload = {

@@ -165,3 +165,8 @@ def create_app() -> FastAPI:
     app.include_router(leads_router)
 
     return app
+    
+    def create_app():
+        """Create FastAPI app instance."""
+        app = FastAPI()
+        return app

@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import cast, func, Date
 from sqlalchemy.orm import Session
 
-from app.database import SessionLocal, db_available, is_sqlite
+from app.database import SessionLocal, db_available
 from app.db_models import Lead
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -71,10 +71,8 @@ def build_analytics_response_for_db(db: Session, *, now_ist: datetime | None = N
     website_leads = max(total_leads - chatbot_leads, 0)
 
     # Daily lead counts — use DB-appropriate date grouping
-    if is_sqlite():
-        day_col = func.date(Lead.created_at).label("day")
-    else:
-        day_col = func.date_trunc("day", func.timezone("Asia/Kolkata", Lead.created_at)).label("day")
+    # Use PostgreSQL date_trunc and timezone handling (SQLite removed)
+    day_col = func.date_trunc("day", func.timezone("Asia/Kolkata", Lead.created_at)).label("day")
 
     rows = (
         db.query(day_col, func.count(Lead.id).label("count"))

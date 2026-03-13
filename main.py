@@ -7,17 +7,16 @@ from app.factory import create_app
 
 app = create_app()
 
+
 # ── SAFE TABLE CREATION & STARTUP LOGGING ──
-from app.database import engine
-from app.db_models import Base
-import os
+from app.database import create_tables
 
 @app.on_event("startup")
 def startup():
     print("FastAPI server starting")
     print("DATABASE_URL loaded:", bool(os.getenv("DATABASE_URL")))
     try:
-        Base.metadata.create_all(bind=engine)
+        create_tables()
         print("Database initialized successfully")
     except Exception as e:
         print("Database initialization failed:", e)
