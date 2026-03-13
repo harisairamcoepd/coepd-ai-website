@@ -116,12 +116,12 @@ def create_app() -> FastAPI:
 
     # ── Initialise Supabase PostgreSQL ───────────────────────────────────
     try:
-        from app.database import init_engine, SessionLocal
+        from app.database import create_tables, SessionLocal
         from app.db_models import Staff
 
-        init_engine()
+        create_tables()
         app.state.startup_status["database"] = "connected"
-        logger.info("Supabase PostgreSQL tables created")
+        logger.info("PostgreSQL tables created")
 
         # Seed default admin user
         import bcrypt
@@ -153,7 +153,7 @@ def create_app() -> FastAPI:
 
     except Exception as exc:
         app.state.startup_status["database"] = "disconnected"
-        logger.warning("Supabase PostgreSQL init failed: %s", exc)
+        logger.warning("PostgreSQL init failed: %s", exc)
 
     logger.info("Authentication enabled")
     logger.info("Application startup complete")
@@ -165,8 +165,3 @@ def create_app() -> FastAPI:
     app.include_router(leads_router)
 
     return app
-    
-    def create_app():
-        """Create FastAPI app instance."""
-        app = FastAPI()
-        return app
