@@ -130,7 +130,7 @@ DOMAIN_LIBRARY = {
             "Risk & Compliance BA (KYC / AML)",
             "Loans & Credit BA (Retail / SME / Corporate)",
         ],
-        "tools": ["Jira", "Confluence", "SQL", "Excel", "Power BI/Tableau", "Visio", "Swagger/Postman"],
+        "tools": ["Jira", "Confluence", "SQL", "Power BI/Tableau", "Visio", "Swagger/Postman"],
         "projects": [
             "UPI payments: user stories + test cases + UAT plan",
             "Loan journey: BRD + process map + backlog",
@@ -149,7 +149,7 @@ DOMAIN_LIBRARY = {
             "Healthcare Data BA",
             "Compliance BA",
         ],
-        "tools": ["Jira", "SQL", "Excel", "Power BI", "Visio", "Documentation"],
+        "tools": ["Jira", "SQL", "Confluence", "Power BI", "Visio", "Documentation"],
         "projects": [
             "Appointment workflow: process map + improvements",
             "Claims processing: business rules + UAT scenarios",
@@ -168,7 +168,7 @@ DOMAIN_LIBRARY = {
             "Inventory / Supply BA",
             "Pricing & Promotions BA",
         ],
-        "tools": ["Jira", "Excel", "SQL", "Power BI", "Figma/Balsamiq", "Analytics basics"],
+        "tools": ["Jira", "Confluence", "SQL", "Power BI", "Figma/Balsamiq", "Analytics basics"],
         "projects": [
             "Checkout drop-off: analysis → requirements",
             "Returns/refunds: stories + validations",
@@ -187,7 +187,7 @@ DOMAIN_LIBRARY = {
             "Risk Analytics BA",
             "Compliance BA",
         ],
-        "tools": ["Jira", "Excel", "SQL", "Power BI", "Visio", "Documentation"],
+        "tools": ["Jira", "Confluence", "SQL", "Power BI", "Visio", "Documentation"],
         "projects": [
             "Claims flow: rules + fraud checks + UAT plan",
             "Policy issuance: validations + acceptance criteria",
@@ -206,7 +206,7 @@ DOMAIN_LIBRARY = {
             "Digital Services BA",
             "Product BA (Plans/5G)",
         ],
-        "tools": ["Jira", "Excel", "SQL", "Power BI", "Visio", "API basics"],
+        "tools": ["Jira", "Confluence", "SQL", "Power BI", "Visio", "API basics"],
         "projects": [
             "Recharge/plan change: stories + validations",
             "Billing disputes: flow + KPIs",
@@ -225,7 +225,7 @@ DOMAIN_LIBRARY = {
             "Inventory Optimization BA",
             "Operations BA",
         ],
-        "tools": ["Excel", "SQL", "Power BI", "Jira", "Visio", "Process mapping"],
+        "tools": ["Confluence", "SQL", "Power BI", "Jira", "Visio", "Process mapping"],
         "projects": [
             "Delivery tracking: workflow + KPIs",
             "Warehouse picking optimization: requirements + UAT",
@@ -244,7 +244,7 @@ DOMAIN_LIBRARY = {
             "Operations Excellence BA",
             "Supply Chain BA",
         ],
-        "tools": ["Excel", "SQL", "Power BI", "Process mapping", "ERP basics", "Jira"],
+        "tools": ["Confluence", "SQL", "Power BI", "Process mapping", "ERP basics", "Jira"],
         "projects": [
             "Production KPI dashboard",
             "Defect tracking workflow",
@@ -263,7 +263,7 @@ DOMAIN_LIBRARY = {
             "R&D Process BA",
             "Data BA",
         ],
-        "tools": ["Excel", "SQL", "Power BI", "Documentation", "Process mapping", "Jira"],
+        "tools": ["Confluence", "SQL", "Power BI", "Documentation", "Process mapping", "Jira"],
         "projects": [
             "Clinical data workflow requirements",
             "Compliance reporting rules",
@@ -282,7 +282,7 @@ DOMAIN_LIBRARY = {
             "Growth/Funnel BA",
             "Operations BA",
         ],
-        "tools": ["Excel", "SQL", "Power BI", "Analytics basics", "Jira", "Figma/Balsamiq"],
+        "tools": ["Confluence", "SQL", "Power BI", "Analytics basics", "Jira", "Figma/Balsamiq"],
         "projects": [
             "Enrollment funnel improvements",
             "LMS feature stories + AC",
@@ -301,7 +301,7 @@ DOMAIN_LIBRARY = {
             "Mortgage / Lending BA",
             "Data BA",
         ],
-        "tools": ["Excel", "SQL", "Power BI", "Jira", "Process mapping", "Documentation"],
+        "tools": ["Confluence", "SQL", "Power BI", "Jira", "Process mapping", "Documentation"],
         "projects": [
             "Lead-to-site-visit process mapping",
             "Rental workflow requirements",
@@ -320,7 +320,7 @@ DOMAIN_LIBRARY = {
             "Compliance BA",
             "Renewables BA",
         ],
-        "tools": ["Excel", "SQL", "Power BI", "Process mapping", "Jira"],
+        "tools": ["Confluence", "SQL", "Power BI", "Process mapping", "Jira"],
         "projects": [
             "Billing dispute workflow",
             "Energy usage KPI dashboard",
@@ -339,7 +339,7 @@ DOMAIN_LIBRARY = {
             "Audit/Compliance BA",
             "Public Data BA",
         ],
-        "tools": ["Documentation", "Excel", "Power BI", "Process mapping", "Jira"],
+        "tools": ["Documentation", "Confluence", "Power BI", "Process mapping", "Jira"],
         "projects": [
             "Citizen service digitization (BRD + backlog)",
             "Department KPI dashboard",

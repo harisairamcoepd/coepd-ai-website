@@ -433,12 +433,12 @@
         usage: "Business Analysts use Visio to create UML use case diagrams, activity diagrams, swim lane process flows, and enterprise architecture documentation.",
         example: "Creating UML diagrams for a CRM system, designing swim lane workflows for insurance claim processing, and mapping enterprise data architecture."
       },
-      excel: {
+      confluence: {
         icon: "\ud83d\udcd1",
-        title: "Excel",
-        desc: "Microsoft Excel is the essential tool for data analysis, modeling, and business reporting.",
-        usage: "Business Analysts use Excel for data analysis, creating pivot tables, building financial models, performing gap analysis, and managing requirements traceability matrices.",
-        example: "Building a cost-benefit analysis for a new feature, creating a requirements traceability matrix, and performing data validation with pivot tables."
+        title: "Confluence",
+        desc: "Atlassian Confluence is a collaboration and documentation platform for teams and projects.",
+        usage: "Business Analysts use Confluence for requirements documentation, knowledge base maintenance, stakeholder collaboration, and sharing specifications and meeting notes.",
+        example: "Maintaining a requirements repository, documenting user stories and decisions, and sharing meeting notes with stakeholders."
       },
       azure: {
         icon: "\u2601\ufe0f",
@@ -460,8 +460,12 @@
     var exampleEl = document.getElementById("toolModalExample");
 
     function openModal(key) {
+      console.log('[tools] openModal()', key);
       var data = toolData[key];
-      if (!data) return;
+      if (!data) {
+        console.warn('[tools] no tool data for', key);
+        return;
+      }
       // Copy SVG icon from the tool card
       var cardEl = document.querySelector('.tool-card[data-tool="' + key + '"] .tool-icon');
       if (cardEl) {
@@ -473,6 +477,7 @@
       descEl.textContent = data.desc;
       usageEl.textContent = data.usage;
       exampleEl.textContent = data.example;
+      console.log('[tools] modal populated:', data.title);
       overlay.classList.add("is-active");
       document.body.style.overflow = "hidden";
     }

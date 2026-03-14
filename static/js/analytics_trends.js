@@ -1,6 +1,40 @@
 (function () {
   const charts = {};
   const palette = ["#22c55e", "#6366f1", "#f59e0b", "#f97316", "#ec4899", "#06b6d4"];
+  const logoImage = new Image();
+  logoImage.src = "/static/images/coepd-logo.png?v=20260314";
+
+  const centerLogoPlugin = {
+    id: "centerLogo",
+    afterDatasetsDraw: function (chart) {
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data || !meta.data.length) return;
+
+      const arc = meta.data[0];
+      const x = arc.x;
+      const y = arc.y;
+      const innerRadius = arc.innerRadius || 0;
+      if (!innerRadius) return;
+
+      const ctx = chart.ctx;
+      const plateRadius = innerRadius * 0.9;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, plateRadius, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255,0.96)";
+      ctx.fill();
+      ctx.restore();
+
+      if (!logoImage.complete) return;
+
+      const logoSize = innerRadius * 1.05;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.drawImage(logoImage, -logoSize / 2, -logoSize / 2, logoSize, logoSize);
+      ctx.restore();
+    }
+  };
 
   function endpoint(path) {
     return (window.__API_BASE__ || "") + path;
@@ -52,6 +86,7 @@
 
     charts[chartKey] = new Chart(canvas, {
       type: "doughnut",
+      plugins: [centerLogoPlugin],
       data: {
         labels: labels,
         datasets: [{
@@ -134,6 +169,12 @@
         api: "/api/analytics/domain-trends"
       }
     ];
+
+    logoImage.onload = function () {
+      Object.keys(charts).forEach(function (key) {
+        if (charts[key]) charts[key].draw();
+      });
+    };
 
     Promise.all(cards.map(loadCard)).catch(function () {});
   }
