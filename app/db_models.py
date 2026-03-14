@@ -1,11 +1,16 @@
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import Column, DateTime, Integer, String, Text, func
 
 from app.database import Base
 
-IST = ZoneInfo("Asia/Kolkata")
+try:
+    IST = ZoneInfo("Asia/Kolkata")
+except ZoneInfoNotFoundError:
+    # tzdata package not installed on this system (common on minimal Windows installs).
+    # Fall back to a fixed-offset IST timezone (UTC+5:30) for local development.
+    IST = timezone(timedelta(hours=5, minutes=30))
 
 
 def get_ist_now() -> datetime:

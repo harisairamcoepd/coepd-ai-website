@@ -1,13 +1,16 @@
 from datetime import date, datetime, time, timedelta, timezone
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+    IST = ZoneInfo("Asia/Kolkata")
+except Exception:
+    IST = timezone(timedelta(hours=5, minutes=30))
 
-from sqlalchemy import cast, func, Date
+import os
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal, db_available
 from app.db_models import Lead
-
-IST = ZoneInfo("Asia/Kolkata")
 
 
 def _start_of_day_ist(day: date) -> datetime:
@@ -70,29 +73,22 @@ def build_analytics_response_for_db(db: Session, *, now_ist: datetime | None = N
     )
     website_leads = max(total_leads - chatbot_leads, 0)
 
-    # Daily lead counts — use DB-appropriate date grouping
-    # Use PostgreSQL date_trunc and timezone handling (SQLite removed)
-    day_col = func.date_trunc("day", func.timezone("Asia/Kolkata", Lead.created_at)).label("day")
-
-    rows = (
-        db.query(day_col, func.count(Lead.id).label("count"))
-        .filter(Lead.created_at >= month_start, Lead.created_at < next_month_start)
-        .group_by("day")
-        .order_by("day")
-        .all()
-    )
-
+    # Build daily counts by issuing a small per-day count using UTC boundaries.
     counts_by_day: dict[str, int] = {}
-    for row in rows:
-        day_value = row.day
-        if isinstance(day_value, datetime):
-            day_key = day_value.date().isoformat()
-        elif isinstance(day_value, date):
-            day_key = day_value.isoformat()
-        else:
-            # SQLite returns "YYYY-MM-DD" string
-            day_key = str(day_value)[:10]
-        counts_by_day[day_key] = int(row.count or 0)
+    cursor_ist = month_start_day
+    while cursor_ist <= today:
+        day_start_ist = _start_of_day_ist(cursor_ist)
+        day_end_ist = day_start_ist + timedelta(days=1)
+        day_start_utc = day_start_ist.astimezone(timezone.utc)
+        day_end_utc = day_end_ist.astimezone(timezone.utc)
+        cnt = int(
+            db.query(func.count(Lead.id))
+            .filter(Lead.created_at >= day_start_utc, Lead.created_at < day_end_utc)
+            .scalar()
+            or 0
+        )
+        counts_by_day[cursor_ist.isoformat()] = cnt
+        cursor_ist = cursor_ist + timedelta(days=1)
 
     daily_leads: list[dict[str, int | str]] = []
     cursor = month_start_day

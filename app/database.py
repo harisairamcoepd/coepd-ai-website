@@ -7,8 +7,11 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# If DATABASE_URL is not set, fall back to a local sqlite file for development.
+# This prevents the application from crashing when running locally without a DB.
 if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL not found")
+    print("Warning: DATABASE_URL not found — falling back to sqlite:///./dev.db")
+    DATABASE_URL = "sqlite:///./dev.db"
 
 # Fix Render postgres URL
 if DATABASE_URL.startswith("postgres://"):

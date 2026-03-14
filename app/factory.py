@@ -7,18 +7,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from starlette.middleware.sessions import SessionMiddleware
+try:
+    from starlette.middleware.sessions import SessionMiddleware
+except Exception:
+    SessionMiddleware = None
 
 from app.config import PREFERRED_STATIC_DIR, STATIC_DIR, TEMPLATES_DIR
 from app.auth import AUTH_COOKIE_SECURE, validate_auth_configuration, validate_auth_dependencies
 from app.middleware.auth_middleware import AuthAndSecurityMiddleware
 from app.middleware.rate_limit import RateLimiter
-from app.routers.admin import router as admin_router
-from app.routers.auth import register_auth_routes
-from app.routers.chat import router as chat_router
-from app.routers.leads import router as leads_router
-from app.routers.pages import register_page_routes
-from chatbot.db import init_db
+
+# Defer router and chatbot imports to avoid import-time circular dependencies.
+
 
 
 logging.basicConfig(
@@ -85,12 +85,15 @@ def create_app() -> FastAPI:
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR), check_dir=False), name="static")
     app.mount("/chatbot", StaticFiles(directory=str(STATIC_DIR / "chatbot"), check_dir=False), name="chatbot")
 
-    app.add_middleware(
-        SessionMiddleware,
-        secret_key=os.getenv("SESSION_SECRET_KEY", "coepd-super-secret-key"),
-        same_site="lax",
-        https_only=AUTH_COOKIE_SECURE,
-    )
+    if SessionMiddleware is not None:
+        app.add_middleware(
+            SessionMiddleware,
+            secret_key=os.getenv("SESSION_SECRET_KEY", "coepd-super-secret-key"),
+            same_site="lax",
+            https_only=AUTH_COOKIE_SECURE,
+        )
+    else:
+        logger.warning("SessionMiddleware not available; sessions disabled. Install 'itsdangerous' to enable.")
 
     app.add_middleware(AuthAndSecurityMiddleware)
 
@@ -107,9 +110,10 @@ def create_app() -> FastAPI:
     # ── Startup checks ──────────────────────────────────────────────────
     _run_startup_checks()
 
-    # ── Initialise chatbot SQLite DB ─────────────────────────────────────
+    # ── Initialise chatbot SQLite DB (deferred import) ───────────────────
     try:
-        init_db()
+        from chatbot.db import init_db as _init_db
+        _init_db()
         logger.info("Chatbot SQLite database initialized")
     except Exception as exc:
         logger.warning("Chatbot DB init skipped: %s", exc)
@@ -158,10 +162,20 @@ def create_app() -> FastAPI:
     logger.info("Authentication enabled")
     logger.info("Application startup complete")
 
-    app.include_router(register_page_routes(templates))
-    app.include_router(register_auth_routes(templates))
-    app.include_router(chat_router)
-    app.include_router(admin_router)
-    app.include_router(leads_router)
+    # ── Include routers (deferred imports to avoid circular import issues) ─
+    try:
+        from app.routers.pages import register_page_routes as _rpr
+        from app.routers.auth import register_auth_routes as _rar
+        from app.routers.chat import router as _chat_router
+        from app.routers.admin import router as _admin_router
+        from app.routers.leads import router as _leads_router
+
+        app.include_router(_rpr(templates))
+        app.include_router(_rar(templates))
+        app.include_router(_chat_router)
+        app.include_router(_admin_router)
+        app.include_router(_leads_router)
+    except Exception as exc:
+        logger.warning("Failed to include some routers: %s", exc)
 
     return app

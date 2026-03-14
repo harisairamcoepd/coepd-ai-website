@@ -1,0 +1,36 @@
+<section id="job-trends" class="trend-section section">
+  <div class="container">
+    <h2 class="section-title">Business Analyst Job Market Trends 2026</h2>
+    <p class="section-desc">Live analytics view of location, experience, and domain demand trends for Business Analyst roles.</p>
+
+    <div class="trends-grid">
+      <article id="trend-card-location" class="trend-card">
+        <h3 class="trend-title">Jobs by Location</h3>
+        <div class="trend-loading">Loading chart...</div>
+        <div class="trend-content hidden">
+          <div class="chart-container"><canvas id="locationTrendChart"></canvas></div>
+          <div id="locationTrendSummary" class="summary"></div>
+        </div>
+      </article>
+
+      <article id="trend-card-experience" class="trend-card">
+        <h3 class="trend-title">Jobs by Experience</h3>
+        <div class="trend-loading">Loading chart...</div>
+        <div class="trend-content hidden">
+          <div class="chart-container"><canvas id="experienceTrendChart"></canvas></div>
+          <div id="experienceTrendSummary" class="summary"></div>
+        </div>
+      </article>
+
+      <article id="trend-card-domain" class="trend-card">
+        <h3 class="trend-title">Jobs by Domain</h3>
+        <div class="trend-loading">Loading chart...</div>
+        <div class="trend-content hidden">
+          <div class="chart-container"><canvas id="domainTrendChart"></canvas></div>
+          <div id="domainTrendSummary" class="summary"></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+<script src="/static/js/analytics_trends.js" defer></script>
