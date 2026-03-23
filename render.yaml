@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: coepd-ai-website
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: SQLITE_DATABASE_PATH
+        value: /var/data/coepd_local.db
+      - key: DB_CONNECT_TIMEOUT_SECONDS
+        value: 5
+      - key: DB_AVAILABILITY_CACHE_SECONDS
+        value: 15
+    disk:
+      name: coepd-data
+      mountPath: /var/data
+      sizeGB: 1

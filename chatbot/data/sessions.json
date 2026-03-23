@@ -1,0 +1,385 @@
+{
+  "test_user": {
+    "stage": "start",
+    "data": {
+      "progress": 40,
+      "profile": {
+        "domain": "",
+        "experience": "",
+        "goal": "",
+        "name": "",
+        "phone": "",
+        "interest": ""
+      },
+      "score": 35,
+      "lead_type": "COLD"
+    }
+  },
+  "testuser": {
+    "stage": "menu",
+    "data": {
+      "progress": 45,
+      "profile": {
+        "domain": "",
+        "experience": "",
+        "goal": "",
+        "name": "",
+        "phone": "",
+        "interest": ""
+      },
+      "data": {
+        "progress": 30,
+        "profile": {
+          "domain": "",
+          "experience": "",
+          "goal": "",
+          "name": "",
+          "phone": "",
+          "interest": ""
+        },
+        "data": {
+          "progress": 20,
+          "profile": {
+            "domain": "",
+            "experience": "",
+            "goal": "",
+            "name": "",
+            "phone": "",
+            "interest": ""
+          },
+          "data": {
+            "progress": 10,
+            "profile": {
+              "domain": "",
+              "experience": "",
+              "goal": "",
+              "name": "",
+              "phone": "",
+              "interest": ""
+            },
+            "domain": "Finance"
+          },
+          "experience": "0 Fresher"
+        },
+        "goal": "Job Switch"
+      }
+    }
+  },
+  "testuser2": {
+    "stage": "complete",
+    "data": {
+      "progress": 100,
+      "profile": {
+        "domain": "",
+        "experience": "",
+        "goal": "",
+        "name": "",
+        "phone": "",
+        "interest": "demo"
+      },
+      "data": {
+        "progress": 90,
+        "profile": {
+          "domain": "",
+          "experience": "",
+          "goal": "",
+          "name": "",
+          "phone": "",
+          "interest": ""
+        },
+        "data": {
+          "progress": 80,
+          "profile": {
+            "domain": "",
+            "experience": "",
+            "goal": "",
+            "name": "",
+            "phone": "",
+            "interest": ""
+          },
+          "data": {
+            "progress": 70,
+            "profile": {
+              "domain": "",
+              "experience": "",
+              "goal": "",
+              "name": "",
+              "phone": "",
+              "interest": ""
+            },
+            "data": {
+              "progress": 65,
+              "profile": {
+                "domain": "",
+                "experience": "",
+                "goal": "",
+                "name": "",
+                "phone": "",
+                "interest": ""
+              },
+              "data": {
+                "progress": 60,
+                "profile": {
+                  "domain": "",
+                  "experience": "",
+                  "goal": "",
+                  "name": "",
+                  "phone": "",
+                  "interest": ""
+                },
+                "data": {
+                  "progress": 45,
+                  "profile": {
+                    "domain": "",
+                    "experience": "",
+                    "goal": "",
+                    "name": "",
+                    "phone": "",
+                    "interest": ""
+                  },
+                  "data": {
+                    "progress": 30,
+                    "profile": {
+                      "domain": "",
+                      "experience": "",
+                      "goal": "",
+                      "name": "",
+                      "phone": "",
+                      "interest": ""
+                    },
+                    "data": {
+                      "progress": 20,
+                      "profile": {
+                        "domain": "",
+                        "experience": "",
+                        "goal": "",
+                        "name": "",
+                        "phone": "",
+                        "interest": ""
+                      },
+                      "data": {
+                        "progress": 10,
+                        "profile": {
+                          "domain": "",
+                          "experience": "",
+                          "goal": "",
+                          "name": "",
+                          "phone": "",
+                          "interest": ""
+                        },
+                        "domain": "Finance"
+                      },
+                      "experience": "0 Fresher"
+                    },
+                    "goal": "Job Switch"
+                  }
+                },
+                "demo_day": "Friday"
+              },
+              "demo_slot": "2:00 PM"
+            },
+            "whatsapp_consent": "yes"
+          },
+          "name": "John Doe"
+        },
+        "phone": "9876543210"
+      },
+      "score": 50,
+      "lead_type": "WARM"
+    }
+  },
+  "testuser3": {
+    "stage": "menu",
+    "data": {
+      "progress": 45,
+      "profile": {
+        "domain": "",
+        "experience": "",
+        "goal": "",
+        "name": "",
+        "phone": "",
+        "interest": ""
+      },
+      "data": {
+        "progress": 30,
+        "profile": {
+          "domain": "",
+          "experience": "",
+          "goal": "",
+          "name": "",
+          "phone": "",
+          "interest": ""
+        },
+        "data": {
+          "progress": 20,
+          "profile": {
+            "domain": "",
+            "experience": "",
+            "goal": "",
+            "name": "",
+            "phone": "",
+            "interest": ""
+          },
+          "data": {
+            "progress": 10,
+            "profile": {
+              "domain": "",
+              "experience": "",
+              "goal": "",
+              "name": "",
+              "phone": "",
+              "interest": ""
+            },
+            "domain": "Finance"
+          },
+          "experience": "0 Fresher"
+        },
+        "goal": "Job Switch"
+      }
+    }
+  },
+  "testrestart": {
+    "stage": "ask_experience",
+    "data": {
+      "progress": 20,
+      "profile": {
+        "domain": "",
+        "experience": "",
+        "goal": "",
+        "name": "",
+        "phone": "",
+        "interest": ""
+      },
+      "data": {
+        "progress": 10,
+        "profile": {
+          "domain": "",
+          "experience": "",
+          "goal": "",
+          "name": "",
+          "phone": "",
+          "interest": ""
+        },
+        "domain": "Finance"
+      }
+    }
+  },
+  "testuser4": {
+    "stage": "complete",
+    "data": {
+      "progress": 100,
+      "profile": {
+        "domain": "Finance",
+        "experience": "0 Fresher",
+        "goal": "Job Switch",
+        "name": "Alice",
+        "phone": "9876543210",
+        "interest": "demo"
+      },
+      "demo_day": "Friday",
+      "demo_slot": "2:00 PM",
+      "whatsapp_consent": "yes",
+      "score": 50,
+      "lead_type": "WARM"
+    }
+  },
+  "u_164df8353a07d819cbd13e22a": {
+    "stage": "ask_domain",
+    "data": {
+      "progress": 10,
+      "profile": {
+        "domain": "",
+        "experience": "",
+        "goal": "",
+        "name": "",
+        "phone": "",
+        "interest": ""
+      }
+    }
+  },
+  "testclient1": {
+    "stage": "ask_experience",
+    "data": {
+      "progress": 20,
+      "profile": {
+        "domain": "Finance",
+        "experience": "",
+        "goal": "",
+        "name": "",
+        "phone": "",
+        "interest": ""
+      }
+    }
+  },
+  "u_be55b466e214c819cd0d0ff7d": {
+    "stage": "explain_placement",
+    "data": {
+      "progress": 85,
+      "profile": {
+        "domain": "Healthcare",
+        "experience": "1 Year",
+        "goal": "Career Guidance",
+        "name": "",
+        "phone": "",
+        "interest": ""
+      }
+    }
+  },
+  "testflow": {
+    "stage": "complete",
+    "data": {
+      "progress": 100,
+      "profile": {
+        "domain": "Finance",
+        "experience": "0 Fresher",
+        "goal": "Job Switch",
+        "name": "John",
+        "phone": "9876543210",
+        "interest": "demo"
+      },
+      "demo_day": "Friday",
+      "demo_slot": "2:00 PM",
+      "whatsapp_consent": "yes",
+      "score": 50,
+      "lead_type": "WARM"
+    }
+  },
+  "testflow2": {
+    "stage": "complete",
+    "data": {
+      "progress": 100,
+      "profile": {
+        "domain": "Finance",
+        "experience": "0 Fresher",
+        "goal": "Job Switch",
+        "name": "John",
+        "phone": "9876543210",
+        "interest": "demo"
+      },
+      "demo_day": "Friday",
+      "demo_slot": "2:00 PM",
+      "whatsapp_consent": "yes",
+      "score": 50,
+      "lead_type": "WARM"
+    }
+  },
+  "testflow3": {
+    "stage": "complete",
+    "data": {
+      "progress": 100,
+      "profile": {
+        "domain": "Finance",
+        "experience": "0 Fresher",
+        "goal": "Job Switch",
+        "name": "John",
+        "phone": "9876543210",
+        "interest": "demo"
+      },
+      "demo_day": "Friday",
+      "demo_slot": "2:00 PM",
+      "whatsapp_consent": "yes",
+      "score": 50,
+      "lead_type": "WARM"
+    }
+  }
+}

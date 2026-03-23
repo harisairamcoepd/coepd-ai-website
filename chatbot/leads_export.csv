@@ -1,0 +1,7 @@
+id,name,email,phone,location,source,created_at
+11,Rahul,rahul@gmail.com,9876543210,Hyderabad,chatbot,2026-03-10T09:30:35Z
+10,Hari,hari@gmail.com,7337212474,Hyderabad,webpage,2026-03-10T09:30:33Z
+9,Harisairam Harisairam,harisairam.coepd@gmail.com,7337212474,,website_form,2026-03-10T09:19:30Z
+6,Hari,sai@gmail.com,7337212474,,chatbot,2026-03-10T07:40:19Z
+5,Hari Harisairam,harisairam.coepd@gmail.com,7337212474,,website_form,2026-03-10T07:35:37Z
+2,Test User,test@example.com,9999999999,,chatbot,2026-03-10T06:55:18Z
