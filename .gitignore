@@ -21,3 +21,7 @@ Thumbs.db
 
 # VS Code settings
 .vscode/
+
+# SQLite runtime files
+*.db-wal
+*.db-shm
