@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Environment variables
 .env
 
@@ -21,7 +22,9 @@ Thumbs.db
 
 # VS Code settings
 .vscode/
-
-# SQLite runtime files
-*.db-wal
-*.db-shm
+=======
+.env 
+__pycache__/ 
+.venv/ 
+>>>>>>> a728cf6ab0cf2486699c0dcc33edd90d30c3f689
+chatbot/app.db
