@@ -1,63 +1,47 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>COEPD Admin Sign In</title>
-  <style>
-    :root { --bg:#eef6ff; --card:#ffffff; --text:#0f172a; --muted:#475569; --primary:#0f766e; --border:#d8e2ee; }
-    body { margin: 0; font-family: Segoe UI, Arial, sans-serif; background: radial-gradient(circle at top right, #dbeafe, var(--bg)); color: var(--text); }
-    .page { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
-    .card { width: min(420px, 95vw); background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08); padding: 24px; }
-    h1 { margin: 0 0 10px; font-size: 26px; }
-    p { margin: 0 0 18px; color: var(--muted); line-height: 1.4; }
-    label { display: block; margin: 10px 0 6px; font-weight: 600; }
-    input {
-      width: 100%;
-      box-sizing: border-box;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
-    .error {
-      margin: 0 0 10px;
-      color: #b91c1c;
-      font-size: 14px;
-      min-height: 18px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid var(--primary);
-      background: var(--primary);
-      color: #fff;
-      font-weight: 600;
-      text-decoration: none;
-      padding: 12px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .btn:hover { opacity: 0.9; }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/auth.css?v=1" />
 </head>
-<body>
-  <main class="page">
-    <section class="card">
-      <h1>Admin Sign In</h1>
-      <p>Enter your email and password to access the COEPD admin dashboard.</p>
-      <p class="error">{{ error or '' }}</p>
-      <form method="post" action="/admin">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="text" required autocomplete="username" />
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" required autocomplete="current-password" />
-        <button class="btn" type="submit">Login</button>
-      </form>
+<body class="auth-body">
+  <main class="auth-page">
+    <section class="auth-shell" aria-label="Admin login panel">
+      <aside class="auth-panel auth-panel--brand">
+        <span class="auth-brand-mark"><span class="auth-brand-dot" aria-hidden="true"></span> COEPD Secure</span>
+        <h2>Admin Operations Console</h2>
+        <p>Manage teams, review incoming client leads, and monitor conversion performance from one trusted dashboard.</p>
+        <ul class="auth-points">
+          <li>Role-based access control</li>
+          <li>Lead analytics and export</li>
+          <li>Session and cookie security</li>
+        </ul>
+      </aside>
+
+      <div class="auth-panel auth-panel--form">
+        <span class="auth-role">Admin Access</span>
+        <h1 class="auth-title">Welcome Back</h1>
+        <p class="auth-subtitle">Sign in with your admin account to continue.</p>
+        <p class="auth-error" role="alert">{{ error or '' }}</p>
+
+        <form class="auth-form" method="post" action="/admin">
+          <label for="email">Email
+            <input id="email" name="email" type="text" required autocomplete="username" placeholder="Enter admin email" />
+          </label>
+
+          <label for="password">Password
+            <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="Enter password" />
+          </label>
+
+          <button class="auth-submit" type="submit">Sign In to Admin</button>
+        </form>
+        <p class="auth-footnote">Authorized personnel only.</p>
+      </div>
     </section>
   </main>
 </body>

@@ -1,10 +1,19 @@
-﻿"""Quick endpoint test script - run with server already started."""
+"""Quick endpoint test script.
+
+Default mode runs in-process via FastAPI TestClient (no running server needed).
+Set TEST_REMOTE=1 to target a live server at BASE.
+"""
 import json
+import os
 import sys
 
 import requests
+from fastapi.testclient import TestClient
 
-BASE = "http://127.0.0.1:8000"
+from main import app
+
+BASE = os.getenv("BASE_URL", "http://127.0.0.1:8000")
+USE_REMOTE = os.getenv("TEST_REMOTE", "0") == "1"
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -12,11 +21,19 @@ except Exception:
     pass
 
 
-def test(label, method, url, session=None, **kwargs):
+def t(path: str) -> str:
+    return f"{BASE}{path}" if USE_REMOTE else path
+
+
+def test(label, method, target, session=None, **kwargs):
     print(f"\n=== {label} ===")
     try:
-        client = session or requests
-        response = getattr(client, method)(url, timeout=5, **kwargs)
+        client = session or (requests if USE_REMOTE else TestClient(app))
+        if USE_REMOTE:
+            response = getattr(client, method)(target, timeout=5, **kwargs)
+        else:
+            response = client.request(method.upper(), target, **kwargs)
+
         print(f"Status: {response.status_code}")
         try:
             print(f"Body: {json.dumps(response.json(), indent=2)[:400]}")
@@ -27,10 +44,10 @@ def test(label, method, url, session=None, **kwargs):
 
 
 # 1. Health check
-test("GET /", "get", f"{BASE}/")
+test("GET /", "get", t("/"))
 
 # 2. Public lead submission
-test("POST /api/leads", "post", f"{BASE}/api/leads", json={
+test("POST /api/leads", "post", t("/api/leads"), json={
     "name": "Hari",
     "phone": "7337212474",
     "email": "hari@gmail.com",
@@ -41,41 +58,48 @@ test("POST /api/leads", "post", f"{BASE}/api/leads", json={
 })
 
 # 3. Public lead list
-test("GET /api/leads", "get", f"{BASE}/api/leads")
+test("GET /api/leads", "get", t("/api/leads"))
 
 # 4. Staff login
-test("POST /api/staff/login", "post", f"{BASE}/api/staff/login", json={
+test("POST /api/staff/login", "post", t("/api/staff/login"), json={
     "email": "admin",
     "password": "admin",
 })
 
 # 5. Admin login (returns cookie for subsequent requests)
-session = requests.Session()
+session = requests.Session() if USE_REMOTE else TestClient(app)
 print("\n=== POST /api/admin/login (session) ===")
 try:
-    login_response = session.post(
-        f"{BASE}/api/admin/login",
-        json={"email": "admin", "password": "admin"},
-        timeout=5,
-    )
+    if USE_REMOTE:
+        login_response = session.post(
+            t("/api/admin/login"),
+            json={"email": "admin", "password": "admin"},
+            timeout=5,
+        )
+    else:
+        login_response = session.post(
+            t("/api/admin/login"),
+            json={"email": "admin", "password": "admin"},
+        )
+
     print(f"Status: {login_response.status_code}")
     print(f"Body: {json.dumps(login_response.json(), indent=2)[:400]}")
 except Exception as exc:
     print(f"Error: {exc}")
 
 # 6. Admin leads (with auth cookie)
-test("GET /api/admin/leads (auth)", "get", f"{BASE}/api/admin/leads", session=session)
+test("GET /api/admin/leads (auth)", "get", t("/api/admin/leads"), session=session)
 
-# 7. Admin stats
-test("GET /api/admin/stats (no auth)", "get", f"{BASE}/api/admin/stats")
+# 7. Admin stats (with auth cookie)
+test("GET /api/admin/stats (auth)", "get", t("/api/admin/stats"), session=session)
 
-# 8. Lead growth
-test("GET /api/admin/lead-growth (no auth)", "get", f"{BASE}/api/admin/lead-growth")
+# 8. Lead growth (with auth cookie)
+test("GET /api/admin/lead-growth (auth)", "get", t("/api/admin/lead-growth"), session=session)
 
-# 9. Source breakdown
-test("GET /api/admin/source-breakdown (no auth)", "get", f"{BASE}/api/admin/source-breakdown")
+# 9. Source breakdown (with auth cookie)
+test("GET /api/admin/source-breakdown (auth)", "get", t("/api/admin/source-breakdown"), session=session)
 
-# 10. Staff list
-test("GET /api/admin/staff (no auth)", "get", f"{BASE}/api/admin/staff")
+# 10. Staff list (with auth cookie)
+test("GET /api/admin/staff (auth)", "get", t("/api/admin/staff"), session=session)
 
 print("\n=== Done ===")

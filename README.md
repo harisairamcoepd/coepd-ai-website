@@ -153,6 +153,7 @@ Database options:
 Render defaults from `render.yaml`:
 - `PYTHON_VERSION=3.11.11`
 - `SQLITE_DATABASE_PATH=/var/data/coepd_local.db`
+- `CHATBOT_DB_PATH=/var/data/chatbot_app.db`
 - `DB_CONNECT_TIMEOUT_SECONDS=5`
 - `DB_AVAILABILITY_CACHE_SECONDS=15`
 
@@ -189,6 +190,62 @@ flowchart TD
     H --> L[Service Live]
 ```
 
+### Production Deploy Checklist (No Data Loss)
+
+1. Keep the same Render service and attached disk (`/var/data`). Do not recreate the service unless you migrate data first.
+2. Confirm env vars:
+   - `JWT_SECRET_KEY=<strong secret>`
+   - `AUTH_COOKIE_SECURE=true`
+   - `SQLITE_DATABASE_PATH=/var/data/coepd_local.db`
+   - `CHATBOT_DB_PATH=/var/data/chatbot_app.db`
+3. Build command:
+   - `pip install -r requirements.txt`
+4. Start command:
+   - `uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. Health check path:
+   - `/health`
+
+### Backup Before Deploy (Recommended)
+
+Take a disk snapshot or copy both DB files before major releases:
+
+```bash
+cp /var/data/coepd_local.db /var/data/coepd_local.backup.$(date +%F_%H%M%S).db
+cp /var/data/chatbot_app.db /var/data/chatbot_app.backup.$(date +%F_%H%M%S).db
+```
+
+If SQLite is busy, stop app briefly before backup for a fully consistent file copy.
+
+### Rollback-Safe Data Migration (Old Service -> New Service)
+
+Use this only when moving to a new Render service/disk.
+
+1. Put old service in maintenance mode (or stop writes briefly).
+2. Copy DB files from old disk:
+   - `/var/data/coepd_local.db`
+   - `/var/data/chatbot_app.db`
+3. Upload/copy them to new service disk at same paths.
+4. Set same env vars (`SQLITE_DATABASE_PATH`, `CHATBOT_DB_PATH`).
+5. Start new service and verify:
+   - `/health` returns connected DB status
+   - admin/staff dashboards show historical leads/users
+
+### Optional MSSQL Setup
+
+Default deploy uses SQLite (recommended on Render free/basic setups).
+
+If you need MSSQL:
+
+1. Install extra dependency:
+
+```bash
+pip install -r requirements-mssql.txt
+```
+
+2. Set `MSSQL_DATABASE_URL` env var.
+3. Ensure ODBC Driver 18 for SQL Server is available in runtime image.
+4. Keep SQLite env vars as fallback unless you intentionally disable fallback.
+
 ## Operations Notes
 
 - If root (`/`) returns `{"error":"Service temporarily unavailable"}`, check logs for middleware-caught exceptions.
@@ -211,4 +268,3 @@ python test_endpoints.py
 - Enable secure cookies in production.
 - Restrict CORS origins for production instead of `*`.
 - Rotate credentials periodically.
-

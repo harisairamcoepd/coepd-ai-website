@@ -96,7 +96,6 @@ def _find_merge_conflict_markers() -> list[str]:
 
 
 def create_app() -> FastAPI:
-    print("Starting FastAPI application...")
     logger.info("Starting FastAPI application...")
 
     app = FastAPI(title="COEPD AI Website", version="2.0.0")
@@ -114,7 +113,7 @@ def create_app() -> FastAPI:
     templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
     if not PREFERRED_STATIC_DIR.exists():
-        logger.warning("Preferred static directory not found at %s; using %s", PREFERRED_STATIC_DIR, STATIC_DIR)
+        logger.info("Preferred static directory not found at %s; using %s", PREFERRED_STATIC_DIR, STATIC_DIR)
 
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR), check_dir=False), name="static")
     app.mount("/chatbot", StaticFiles(directory=str(STATIC_DIR / "chatbot"), check_dir=False), name="chatbot")
@@ -213,4 +212,3 @@ def create_app() -> FastAPI:
         logger.warning("Failed to include some routers: %s", exc)
 
     return app
-

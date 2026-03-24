@@ -11,6 +11,8 @@ services:
         value: 3.11.11
       - key: SQLITE_DATABASE_PATH
         value: /var/data/coepd_local.db
+      - key: CHATBOT_DB_PATH
+        value: /var/data/chatbot_app.db
       - key: DB_CONNECT_TIMEOUT_SECONDS
         value: 5
       - key: DB_AVAILABILITY_CACHE_SECONDS

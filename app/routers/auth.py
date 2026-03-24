@@ -1,5 +1,5 @@
 ﻿from fastapi import APIRouter, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.auth import (
@@ -13,6 +13,30 @@ from app.auth import (
 
 
 router = APIRouter()
+
+
+def _api_login_response(user: dict) -> JSONResponse:
+    role = str(user.get("role", "staff")).strip().lower()
+    email = str(user.get("email", "")).strip().lower()
+
+    token = create_token(
+        email,
+        role,
+        user_id=int(user.get("id", 0) or 0),
+        name=str(user.get("name", "")),
+    )
+
+    response = JSONResponse({"success": True, "role": role})
+    response.set_cookie(
+        key=AUTH_COOKIE_NAME,
+        value=token,
+        httponly=True,
+        secure=AUTH_COOKIE_SECURE,
+        samesite="lax",
+        max_age=60 * 60 * 2,
+        path="/",
+    )
+    return response
 
 
 def register_auth_routes(templates: Jinja2Templates) -> APIRouter:
@@ -119,8 +143,7 @@ def register_auth_routes(templates: Jinja2Templates) -> APIRouter:
         user = authenticate_user(email, password)
         if not user:
             return {"error": "Invalid email or password"}
-        
-        return {"success": True, "role": user["role"]}
+        return _api_login_response(user)
 
     @router.post("/api/admin/login")
     async def api_admin_login(request: Request):
@@ -134,8 +157,7 @@ def register_auth_routes(templates: Jinja2Templates) -> APIRouter:
         
         if user["role"] != "admin":
             return {"error": "Invalid email or password"}
-        
-        return {"success": True, "role": user["role"]}
+        return _api_login_response(user)
 
     @router.post("/api/staff/login")
     async def api_staff_login(request: Request):
@@ -146,8 +168,7 @@ def register_auth_routes(templates: Jinja2Templates) -> APIRouter:
         user = authenticate_user(email, password)
         if not user:
             return {"error": "Invalid email or password"}
-        
-        return {"success": True, "role": user["role"]}
+        return _api_login_response(user)
 
     @router.get("/auth/me")
     async def auth_me(request: Request):

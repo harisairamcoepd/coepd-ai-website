@@ -14,11 +14,29 @@ _IST = timezone(timedelta(hours=5, minutes=30))
 import bcrypt
 
 
-# On Vercel/serverless, the filesystem is read-only except /tmp
-if os.environ.get("VERCEL"):
-    DB_PATH = Path("/tmp/app.db")
-else:
-    DB_PATH = Path(__file__).resolve().parent / "app.db"
+def _resolve_chatbot_db_path() -> Path:
+    configured = (os.getenv("CHATBOT_DB_PATH") or "").strip()
+    if configured:
+        path = Path(configured).expanduser()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return path
+
+    # On Render, prefer persistent disk mount.
+    if (os.getenv("RENDER") or "").strip().lower() == "true":
+        path = Path("/var/data/chatbot_app.db")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return path
+
+    # On Vercel/serverless, the filesystem is read-only except /tmp.
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/app.db")
+
+    path = Path(__file__).resolve().parent / "app.db"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+DB_PATH = _resolve_chatbot_db_path()
 _LOCAL = threading.local()
 
 _TS_FORMATS = (

@@ -1,0 +1,2 @@
+# Optional MSSQL support dependencies
+pyodbc==5.3.0
