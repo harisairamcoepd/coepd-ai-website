@@ -195,20 +195,36 @@ def create_app() -> FastAPI:
     logger.info("Authentication enabled")
     logger.info("Application startup complete")
 
-    # â”€â”€ Include routers (deferred imports to avoid circular import issues) â”€
+    # Include routers (deferred imports to avoid circular import issues).
+    # Load core routers independently so one router failure doesn't disable '/'.
     try:
         from app.routers.pages import register_page_routes as _rpr
-        from app.routers.auth import register_auth_routes as _rar
-        from app.routers.chat import router as _chat_router
-        from app.routers.admin import router as _admin_router
-        from app.routers.leads import router as _leads_router
-
         app.include_router(_rpr(templates))
+    except Exception as exc:
+        logger.exception("Failed to include pages router: %s", exc)
+
+    try:
+        from app.routers.auth import register_auth_routes as _rar
         app.include_router(_rar(templates))
-        app.include_router(_chat_router)
+    except Exception as exc:
+        logger.exception("Failed to include auth router: %s", exc)
+
+    try:
+        from app.routers.admin import router as _admin_router
         app.include_router(_admin_router)
+    except Exception as exc:
+        logger.exception("Failed to include admin router: %s", exc)
+
+    try:
+        from app.routers.leads import router as _leads_router
         app.include_router(_leads_router)
     except Exception as exc:
-        logger.warning("Failed to include some routers: %s", exc)
+        logger.exception("Failed to include leads router: %s", exc)
+
+    try:
+        from app.routers.chat import router as _chat_router
+        app.include_router(_chat_router)
+    except Exception as exc:
+        logger.exception("Failed to include chat router: %s", exc)
 
     return app

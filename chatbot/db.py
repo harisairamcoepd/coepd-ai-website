@@ -16,24 +16,33 @@ import bcrypt
 
 def _resolve_chatbot_db_path() -> Path:
     configured = (os.getenv("CHATBOT_DB_PATH") or "").strip()
-    if configured:
-        path = Path(configured).expanduser()
-        path.parent.mkdir(parents=True, exist_ok=True)
-        return path
+    candidates: list[Path] = []
 
-    # On Render, prefer persistent disk mount.
-    if (os.getenv("RENDER") or "").strip().lower() == "true":
-        path = Path("/var/data/chatbot_app.db")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        return path
+    if configured:
+        candidates.append(Path(configured).expanduser())
+    elif (os.getenv("RENDER") or "").strip().lower() == "true":
+        # Prefer Render persistent disk, if mounted.
+        candidates.append(Path("/var/data/chatbot_app.db"))
 
     # On Vercel/serverless, the filesystem is read-only except /tmp.
     if os.environ.get("VERCEL"):
-        return Path("/tmp/app.db")
+        candidates.append(Path("/tmp/app.db"))
+    else:
+        candidates.append(Path("/tmp/chatbot_app.db"))
+        candidates.append(Path(__file__).resolve().parent / "app.db")
 
-    path = Path(__file__).resolve().parent / "app.db"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    return path
+    for path in candidates:
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            # Verify we can write in this location before selecting it.
+            with path.open("a", encoding="utf-8"):
+                pass
+            return path
+        except OSError:
+            continue
+
+    # Final fallback (may still fail later, but keeps import path deterministic).
+    return Path(__file__).resolve().parent / "app.db"
 
 
 DB_PATH = _resolve_chatbot_db_path()
