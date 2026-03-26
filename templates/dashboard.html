@@ -50,7 +50,7 @@
       <div class="toolbar-grid">
         <label class="field field--search">
           <span>Search</span>
-          <input type="search" name="search" value="{{ search }}" placeholder="Search name, email, phone, location, domain..." />
+          <input type="search" name="search" value="{{ search }}" placeholder="Search name, email, phone, location..." />
         </label>
       </div>
       <div class="toolbar-actions">
@@ -77,7 +77,6 @@
               <th>Phone</th>
               <th>Email</th>
               <th>Location</th>
-              <th>Interested Domain</th>
               <th>Source</th>
               <th>Date &amp; Time</th>
             </tr>
@@ -90,7 +89,6 @@
               <td>{{ lead.phone }}</td>
               <td>{{ lead.email }}</td>
               <td>{{ lead.location or '-' }}</td>
-              <td>{{ lead.interested_domain or '-' }}</td>
               <td>
                 {% if lead.source == 'chatbot' %}
                   <span class="badge badge-chatbot">chatbot</span>
@@ -103,7 +101,7 @@
             {% endfor %}
             {% if not leads %}
             <tr>
-              <td colspan="8" class="muted" style="text-align:center;padding:24px">No leads found.</td>
+              <td colspan="7" class="muted" style="text-align:center;padding:24px">No leads found.</td>
             </tr>
             {% endif %}
           </tbody>

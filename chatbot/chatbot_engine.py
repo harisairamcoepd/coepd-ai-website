@@ -1,487 +1,125 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import re
 from typing import Any
 
 from .db import load_session, save_session
-from .intent_engine import detect_intent
 
 
-QUICK_ACTIONS = [
-    {"label": "Course Details", "value": "Course Details"},
-    {"label": "Duration", "value": "Duration"},
-    {"label": "Placement Support", "value": "Placement Support"},
-    {"label": "Program Benefits", "value": "Program Benefits"},
-    {"label": "Batch Timings", "value": "Batch Timings"},
-    {"label": "Book Free Demo", "value": "Book Free Demo"},
-]
+INITIAL_GREETING = "Welcome to COEPD 👋\nHow can I help you know?"
+DETAILS_PROMPT = "Thank you for reaching out 😊\nTo assist you better, please share your details."
+ASK_NAME = "May I know your name?"
+ASK_PHONE = "Please share your phone number."
+ASK_EMAIL = "Please provide your email address."
+ASK_LOCATION = "Your current location?"
+FINAL_MESSAGE = (
+    "Thank you for sharing your details 🙌\n"
+    "Our team will reach out to you shortly.\n\n"
+    "If you have more queries, feel free to visit our office in Hyderabad\n"
+    "or contact us at +91 88850 24387 📞"
+)
 
-FEES_FOLLOWUP_ACTIONS = [
-    {"label": "Book Free Demo", "value": "Book Free Demo"},
-    {"label": "Program Benefits", "value": "Program Benefits"},
-    {"label": "Course Details", "value": "Course Details"},
-    {"label": "Duration", "value": "Duration"},
-]
-
-DOMAIN_OPTIONS = [
-    {"label": "Banking", "value": "Banking"},
-    {"label": "Finance", "value": "Finance"},
-    {"label": "Healthcare", "value": "Healthcare"},
-    {"label": "Insurance", "value": "Insurance"},
-    {"label": "Retail", "value": "Retail"},
-    {"label": "E-Commerce", "value": "E-Commerce"},
-    {"label": "Telecom", "value": "Telecom"},
-    {"label": "Manufacturing", "value": "Manufacturing"},
-    {"label": "Logistics & Supply Chain", "value": "Logistics & Supply Chain"},
-    {"label": "Education", "value": "Education"},
-    {"label": "IT / Software", "value": "IT / Software"},
-    {"label": "Pharmaceutical", "value": "Pharmaceutical"},
-    {"label": "Real Estate", "value": "Real Estate"},
-    {"label": "Energy & Utilities", "value": "Energy & Utilities"},
-    {"label": "Other", "value": "Other"},
-]
-
-DOMAIN_FOLLOWUP_ACTIONS = [
-    {"label": "Course Details", "value": "Course Details"},
-    {"label": "Program Benefits", "value": "Program Benefits"},
-    {"label": "Placement Support", "value": "Placement Support"},
-    {"label": "Book Free Demo", "value": "Book Free Demo"},
-]
-
-DOMAIN_RESPONSES = {
-    "banking": (
-        "Great choice \U0001f44d\n"
-        "Banking is one of the **top employers** of Business Analysts.\n\n"
-        "**BA Roles in Banking:**\n\n"
-        "\u2022 Banking Business Analyst\n"
-        "\u2022 Credit Risk Analyst\n"
-        "\u2022 Payments & Fintech Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Core Banking Transformation\n"
-        "\u2022 Digital Payments Platform\n"
-        "\u2022 KYC Automation System"
-    ),
-    "finance": (
-        "Excellent \U0001f44d\n"
-        "Finance companies need BAs to streamline reporting, compliance, and risk management.\n\n"
-        "**BA Roles in Finance:**\n\n"
-        "\u2022 Financial Business Analyst\n"
-        "\u2022 Investment Operations Analyst\n"
-        "\u2022 Regulatory Compliance Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Portfolio Management Dashboard\n"
-        "\u2022 Regulatory Reporting Automation"
-    ),
-    "healthcare": (
-        "Great choice \U0001f44d\n"
-        "Healthcare is rapidly digitizing, and BAs are critical for system design and compliance.\n\n"
-        "**BA Roles in Healthcare:**\n\n"
-        "\u2022 Clinical Business Analyst\n"
-        "\u2022 Health Informatics Analyst\n"
-        "\u2022 EMR/EHR Implementation Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Hospital Management System\n"
-        "\u2022 Patient Portal Platform"
-    ),
-    "insurance": (
-        "Great choice \U0001f44d\n"
-        "Insurance companies rely on BAs for claims automation and policy management.\n\n"
-        "**BA Roles in Insurance:**\n\n"
-        "\u2022 Insurance Business Analyst\n"
-        "\u2022 Claims Process Analyst\n"
-        "\u2022 Underwriting Systems Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Claims Processing Automation\n"
-        "\u2022 Policy Administration System"
-    ),
-    "retail": (
-        "Great choice \U0001f44d\n"
-        "Retail businesses depend on data-driven BAs for inventory, CRM, and analytics.\n\n"
-        "**BA Roles in Retail:**\n\n"
-        "\u2022 Retail Business Analyst\n"
-        "\u2022 Merchandising Analyst\n"
-        "\u2022 Customer Analytics Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Retail Analytics Platform\n"
-        "\u2022 Inventory Management System"
-    ),
-    "e-commerce": (
-        "Excellent \U0001f44d\n"
-        "E-Commerce companies need BAs for platform optimization, logistics, and user experience.\n\n"
-        "**BA Roles in E-Commerce:**\n\n"
-        "\u2022 E-Commerce Business Analyst\n"
-        "\u2022 Product Analyst\n"
-        "\u2022 Conversion Optimization Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 E-Commerce Platform Redesign\n"
-        "\u2022 Order Fulfillment Automation"
-    ),
-    "telecom": (
-        "Great choice \U0001f44d\n"
-        "Telecom companies hire BAs for network planning, billing, and CRM systems.\n\n"
-        "**BA Roles in Telecom:**\n\n"
-        "\u2022 Telecom Business Analyst\n"
-        "\u2022 Billing Systems Analyst\n"
-        "\u2022 Network Planning Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Billing System Migration\n"
-        "\u2022 Customer Churn Analytics"
-    ),
-    "manufacturing": (
-        "Great choice \U0001f44d\n"
-        "Manufacturing relies on BAs for ERP, supply chain optimization, and quality control.\n\n"
-        "**BA Roles in Manufacturing:**\n\n"
-        "\u2022 Manufacturing Business Analyst\n"
-        "\u2022 Supply Chain Analyst\n"
-        "\u2022 Quality & Process Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 ERP Implementation\n"
-        "\u2022 Supply Chain Optimization"
-    ),
-    "logistics & supply chain": (
-        "Excellent \U0001f44d\n"
-        "Logistics companies need BAs for route optimization, warehouse management, and tracking systems.\n\n"
-        "**BA Roles in Logistics:**\n\n"
-        "\u2022 Logistics Business Analyst\n"
-        "\u2022 Warehouse Systems Analyst\n"
-        "\u2022 Fleet Management Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Warehouse Management System\n"
-        "\u2022 Last-Mile Delivery Platform"
-    ),
-    "education": (
-        "Great choice \U0001f44d\n"
-        "EdTech and universities need BAs for LMS, student management, and analytics.\n\n"
-        "**BA Roles in Education:**\n\n"
-        "\u2022 EdTech Business Analyst\n"
-        "\u2022 Student Systems Analyst\n"
-        "\u2022 Learning Analytics Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Learning Management System\n"
-        "\u2022 Student Enrollment Portal"
-    ),
-    "it / software": (
-        "That's great \U0001f44d\n"
-        "IT / Software is the **largest employer** of Business Analysts worldwide.\n\n"
-        "**BA Roles in IT:**\n\n"
-        "\u2022 IT Business Analyst\n"
-        "\u2022 Systems Analyst\n"
-        "\u2022 Product Analyst\n"
-        "\u2022 Data Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Enterprise CRM System\n"
-        "\u2022 Cloud Migration Platform\n"
-        "\u2022 Agile Project Dashboard"
-    ),
-    "pharmaceutical": (
-        "Great choice \U0001f44d\n"
-        "Pharma companies need BAs for regulatory compliance, clinical trials, and drug supply chain.\n\n"
-        "**BA Roles in Pharma:**\n\n"
-        "\u2022 Pharma Business Analyst\n"
-        "\u2022 Clinical Data Analyst\n"
-        "\u2022 Drug Safety Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Clinical Trial Management\n"
-        "\u2022 Drug Supply Chain System"
-    ),
-    "real estate": (
-        "Great choice \U0001f44d\n"
-        "Real estate firms need BAs for property management, CRM, and investment analytics.\n\n"
-        "**BA Roles in Real Estate:**\n\n"
-        "\u2022 Real Estate Business Analyst\n"
-        "\u2022 Property Management Analyst\n"
-        "\u2022 Investment Analytics Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Property Listing Platform\n"
-        "\u2022 Tenant Management System"
-    ),
-    "energy & utilities": (
-        "Excellent \U0001f44d\n"
-        "Energy & Utilities companies hire BAs for grid management, billing, and sustainability analytics.\n\n"
-        "**BA Roles in Energy:**\n\n"
-        "\u2022 Energy Business Analyst\n"
-        "\u2022 Smart Grid Analyst\n"
-        "\u2022 Sustainability Analyst\n\n"
-        "**Example Projects:**\n\n"
-        "\u2022 Smart Metering Platform\n"
-        "\u2022 Energy Trading Dashboard"
-    ),
-    "other": (
-        "That's absolutely fine \U0001f44d\n"
-        "Business Analysts work across **all industries**.\n\n"
-        "No matter your domain, the COEPD program will help you transition into a BA role "
-        "with **real-time projects** based on your industry."
-    ),
-}
-
-COURSE_DETAILS_ACTIONS = [
-    {"label": "Program Benefits", "value": "Program Benefits"},
-    {"label": "Placement Support", "value": "Placement Support"},
-    {"label": "Batch Timings", "value": "Batch Timings"},
-    {"label": "Book Free Demo", "value": "Book Free Demo"},
-]
-
-PROGRAM_BENEFITS_ACTIONS = [
-    {"label": "Course Details", "value": "Course Details"},
-    {"label": "Duration", "value": "Duration"},
-    {"label": "Placement Support", "value": "Placement Support"},
-    {"label": "Book Free Demo", "value": "Book Free Demo"},
-]
-
-FAQ_ANSWERS = {
-    "course_details": (
-        "Course Structure:\n\n"
-        "\u2022 6 Months Business Analyst Training Program\n"
-        "\u2022 2 Hours Theory + 4 Hours Hands-On Practical Daily\n"
-        "\u2022 Training on Industry Tools\n\n"
-        "Tools Covered:\n\n"
-        "\u2022 Jira\n"
-        "\u2022 SQL\n"
-        "\u2022 Tableau\n"
-        "\u2022 Power BI\n"
-        "\u2022 Balsamiq\n"
-        "\u2022 Draw.io\n"
-        "\u2022 Agile & Scrum Practices\n\n"
-        "Projects:\n\n"
-        "\u2022 3 Capstone Projects\n"
-        "\u2022 2 Real-Time Live Projects"
-    ),
-    "program_benefits": (
-        "Program Benefits of COEPD Business Analyst Training:\n\n"
-        "\u2022 Industry-Focused Training Program\n"
-        "\u2022 Suitable for IT and Non-IT Professionals\n"
-        "\u2022 No Coding Required\n"
-        "\u2022 Real Business Analyst Case Studies\n"
-        "\u2022 Global Recognition Certificate (IIBA 40 PD Hours)\n"
-        "\u2022 Resume Preparation Support\n"
-        "\u2022 Mock Interview Preparation\n"
-        "\u2022 Career Transition Guidance\n"
-        "\u2022 Dedicated Placement Assistance\n"
-        "\u2022 Hostel Facility for Outstation Candidates\n"
-        "\u2022 Up to 15% Early Registration Discount"
-    ),
-    "duration": "The program is a **6-Month Job Ready Business Analyst Program** covering fundamentals, tools training, real-time projects, documentation practice, mock interviews and placement support.",
-    "placement": (
-        "We offer **100% Placement Guarantee** with a dedicated placement support team, "
-        "resume preparation, mock interviews, interview training, and interview scheduling with partner companies. "
-        "Most candidates receive offers within **3\u20135 interviews**."
-    ),
-    "fees": (
-        "The course fee depends on current batch offers.\n\n"
-        "Currently we provide **up to 15% discount for early registrations**.\n\n"
-        "Our program advisor will explain the exact fee during the **Free Demo Session**.\n\n"
-        "Would you like to join the upcoming demo?"
-    ),
-    "placement_support": (
-        "Our **100% Placement Guarantee** includes:\n\n"
-        "\u2022 Dedicated placement support team\n"
-        "\u2022 Resume preparation & LinkedIn optimization\n"
-        "\u2022 Mock interviews & interview training\n"
-        "\u2022 Interview scheduling with 2700+ hiring partner companies\n"
-        "\u2022 Most candidates get offers within **3\u20135 interviews**"
-    ),
-    "internship": (
-        "Our **6-Month Job Ready Business Analyst Program** includes real-time project training as Stage 2.\n\n"
-        "Students work on live case studies, BRD/FRD documentation, and hands-on experience with "
-        "Power BI, SQL, Excel and Agile Scrum.\n\n"
-        "\u2705 2 Hours Theory + 4 Hours Practical Training Daily\n"
-        "\u2705 100% Placement Guarantee\n"
-        "\u2705 Free Hostel Facility Available\n\n"
-        "Book a free demo to learn more about program benefits and batch offers."
-    ),
-    "batch_timings": "We run both weekday and weekend batches. Training is 2 Hours Theory + 4 Hours Hands-On Practical Training daily.",
-}
+PHONE_RE = re.compile(r"^\d{10}$")
+EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 
 
 def _ui(
     text: str,
-    options: list[dict[str, str]] | None = None,
+    *,
     placeholder: str = "Type your message...",
     progress: int = 0,
+    stage: str | None = None,
 ) -> dict[str, Any]:
-    return {
-        "text": text,
-        "options": options or [],
-        "placeholder": placeholder,
-        "meta": {"progress": progress},
-    }
-
-
-def _valid_phone(value: str) -> bool:
-    digits = re.sub(r"\D", "", value or "")
-    return len(digits) >= 10
+    meta: dict[str, Any] = {"progress": progress}
+    if stage:
+        meta["stage"] = stage
+    return {"text": text, "options": [], "placeholder": placeholder, "meta": meta}
 
 
 def _normalize_phone(value: str) -> str:
-    return re.sub(r"\D", "", value or "")[-10:]
-
-
-def _valid_email(value: str) -> bool:
-    if not value or "@" not in value:
-        return False
-    local, _, domain = value.partition("@")
-    return bool(local and domain and "." in domain)
-
-def _mini_poster(domain: str) -> str:
-    safe_domain = domain or "your chosen domain"
-    return (
-        '<div class="cb-mini-poster">'
-        '<div class="cb-mini-poster-tag">Career Boost</div>'
-        '<h4>From Learner to Business Analyst</h4>'
-        f'<p><strong>{safe_domain}</strong> is a smart choice. Stay focused and job-ready.</p>'
-        '<ul>'
-        '<li>Motivation: You are one strong decision away from your next role.</li>'
-        '<li>Promotion: 6-Month Job Ready Program + Placement Support.</li>'
-        '<li>Success: Most candidates receive offers within 3-5 interviews.</li>'
-        '</ul>'
-        '</div>'
-    )
-def _start_message() -> dict[str, Any]:
-    return _ui(
-        "Hello 👋\nWelcome to **COEPD - Centre of Excellence for Professional Development**.\n\n"
-        "I can help you with:\n\n"
-        "• Course Details\n"
-        "• Fees\n"
-        "• Placement Support\n"
-        "• Free Demo Session\n\n"
-        "To guide you better, I need a few details.",
-        options=QUICK_ACTIONS,
-        placeholder="Tap an option or type your question...",
-        progress=10,
-    )
+    return re.sub(r"\D", "", value or "")
 
 
 def get_bot_response(user_message: str, user_id: str = "web_user") -> dict[str, Any]:
     message = (user_message or "").strip()
     session = load_session(user_id)
-    stage = session["stage"]
-    data = session["data"]
-
-    if message in {"__init__", ""}:
-        if stage == "start":
-            save_session(user_id, "chat", data)
-        return _start_message()
-
-    if message == "__restart__":
-        save_session(user_id, "chat", {})
-        return _start_message()
+    stage = str(session.get("stage") or "greeting")
+    data = session.get("data") if isinstance(session.get("data"), dict) else {}
 
     if stage in {"start", "chat"}:
-        intent = detect_intent(message)
+        stage = "greeting"
+        save_session(user_id, stage, data)
 
-        if intent == "book_demo":
-            save_session(user_id, "lead_name", data)
-            return _ui("Great choice! To guide you better, I need a few details.\n\nWhat is your Full Name?", progress=15)
+    if message in {"__restart__"}:
+        data = {}
+        save_session(user_id, "greeting", data)
+        return _ui(INITIAL_GREETING, placeholder="Type your message...", progress=5, stage="greeting")
 
-        if intent in FAQ_ANSWERS:
-            text = FAQ_ANSWERS[intent]
-            if intent == "course_details":
-                return _ui(text, options=COURSE_DETAILS_ACTIONS, progress=25)
-            if intent == "program_benefits":
-                return _ui(text, options=PROGRAM_BENEFITS_ACTIONS, progress=25)
-            if intent == "fees":
-                return _ui(text, options=FEES_FOLLOWUP_ACTIONS, progress=25)
-            text = f"{text}\n\nWould you like to book a free demo session?"
-            return _ui(text, options=QUICK_ACTIONS, progress=25)
+    if message in {"__init__", ""}:
+        if stage == "greeting":
+            return _ui(INITIAL_GREETING, placeholder="Type your message...", progress=5, stage="greeting")
+        if stage == "collect_name":
+            return _ui(ASK_NAME, placeholder="Enter your full name", progress=20, stage="collect_name")
+        if stage == "collect_phone":
+            return _ui(ASK_PHONE, placeholder="10-digit phone number", progress=40, stage="collect_phone")
+        if stage == "collect_email":
+            return _ui(ASK_EMAIL, placeholder="name@example.com", progress=60, stage="collect_email")
+        if stage == "collect_location":
+            return _ui(ASK_LOCATION, placeholder="e.g. Hyderabad", progress=80, stage="collect_location")
+        return _ui(FINAL_MESSAGE, progress=100, stage="completed")
 
+    if stage == "greeting":
+        save_session(user_id, "collect_name", data)
         return _ui(
-            "I can help with Course Details, Program Benefits, Duration, Placement Support, Batch Timings, Fees, or booking a demo.",
-            options=QUICK_ACTIONS,
+            f"{DETAILS_PROMPT}\n\n{ASK_NAME}",
+            placeholder="Enter your full name",
             progress=20,
+            stage="collect_name",
         )
 
-    if stage == "lead_name":
+    if stage == "collect_name":
         if len(message) < 2:
-            return _ui("Please share your full name to continue.", progress=20)
+            return _ui("Please enter a valid name.", placeholder="Enter your full name", progress=20, stage="collect_name")
         data["name"] = message.title()
-        save_session(user_id, "lead_phone", data)
-        return _ui("What is your Phone Number?", placeholder="10-digit phone number", progress=30)
+        save_session(user_id, "collect_phone", data)
+        return _ui(ASK_PHONE, placeholder="10-digit phone number", progress=40, stage="collect_phone")
 
-    if stage == "lead_phone":
-        if not _valid_phone(message):
-            return _ui("Please enter a valid 10-digit phone number.", placeholder="e.g. 9876543210", progress=30)
-        data["phone"] = _normalize_phone(message)
-        save_session(user_id, "lead_email", data)
-        return _ui("What is your Email Address?", placeholder="name@email.com", progress=40)
-
-    if stage == "lead_email":
-        if not _valid_email(message):
-            return _ui("Please enter a valid email address.", placeholder="name@email.com", progress=40)
-        data["email"] = message.strip().lower()
-        save_session(user_id, "lead_location", data)
-        return _ui("Which City are you currently located in?", placeholder="e.g. Hyderabad", progress=50)
-
-    if stage == "lead_location":
-        if len(message) < 2:
-            return _ui("Please share your city to continue.", placeholder="e.g. Hyderabad", progress=50)
-        data["location"] = message.strip().title()
-        save_session(user_id, "lead_domain", data)
-        return _ui("What is your Interested Domain?", options=DOMAIN_OPTIONS, progress=60)
-
-    if stage == "lead_domain":
-        options = {item["value"].lower(): item["value"] for item in DOMAIN_OPTIONS}
-        selected = options.get(message.lower().strip())
-        if not selected:
-            return _ui("Please select your interested domain.", options=DOMAIN_OPTIONS, progress=60)
-        data["interested_domain"] = selected
-        domain_text = DOMAIN_RESPONSES.get(selected.lower(), "")
-        poster = _mini_poster(selected)
-        if domain_text:
-            domain_text += (
-                f"\n\n{poster}\n\n"
-                "Would you like to know about the **course structure, program benefits, or placement support**?"
+    if stage == "collect_phone":
+        phone = _normalize_phone(message)
+        if not PHONE_RE.fullmatch(phone):
+            return _ui(
+                "Please enter a valid 10-digit phone number.",
+                placeholder="e.g. 9876543210",
+                progress=40,
+                stage="collect_phone",
             )
-            save_session(user_id, "lead_domain_followup", data)
-            response = _ui(domain_text, options=DOMAIN_FOLLOWUP_ACTIONS, progress=65)
-            response["lead_payload"] = {
-                "name": data.get("name", ""),
-                "phone": data.get("phone", ""),
-                "email": data.get("email", ""),
-                "location": data.get("location", ""),
-                "interested_domain": data.get("interested_domain", ""),
-                "whatsapp": "",
-                "source": "chatbot",
-            }
-            return response
-        save_session(user_id, "chat", data)
-        response = _ui(
-            f"{poster}\n\nThank you! Our advisor will contact you shortly.",
-            options=QUICK_ACTIONS,
-            progress=100,
-        )
+        data["phone"] = phone
+        save_session(user_id, "collect_email", data)
+        return _ui(ASK_EMAIL, placeholder="name@example.com", progress=60, stage="collect_email")
+
+    if stage == "collect_email":
+        email = message.lower().strip()
+        if not EMAIL_RE.fullmatch(email):
+            return _ui("Please enter a valid email address.", placeholder="name@example.com", progress=60, stage="collect_email")
+        data["email"] = email
+        save_session(user_id, "collect_location", data)
+        return _ui(ASK_LOCATION, placeholder="e.g. Hyderabad", progress=80, stage="collect_location")
+
+    if stage == "collect_location":
+        if len(message) < 2:
+            return _ui("Please enter your current location.", placeholder="e.g. Hyderabad", progress=80, stage="collect_location")
+        data["location"] = message.title()
+        save_session(user_id, "completed", data)
+        response = _ui(FINAL_MESSAGE, progress=100, stage="completed")
         response["lead_payload"] = {
             "name": data.get("name", ""),
             "phone": data.get("phone", ""),
             "email": data.get("email", ""),
             "location": data.get("location", ""),
-            "interested_domain": data.get("interested_domain", ""),
+            "interested_domain": "",
             "whatsapp": "",
             "source": "chatbot",
         }
         return response
 
-    if stage == "lead_domain_followup":
-        intent = detect_intent(message)
-        if intent in FAQ_ANSWERS:
-            text = FAQ_ANSWERS[intent]
-            text += "\n\nThanks! Our advisor will contact you shortly."
-            save_session(user_id, "chat", data)
-            return _ui(text, options=QUICK_ACTIONS, progress=100)
-        save_session(user_id, "chat", data)
-        return _ui(
-            "Thank you for sharing your details.\n\nOur advisor will contact you shortly.",
-            options=QUICK_ACTIONS,
-            progress=100,
-        )
-
-    # Backward compatibility: if an existing session was already in legacy WhatsApp step.
-    if stage == "lead_whatsapp":
-        save_session(user_id, "chat", data)
-        return _ui(
-            "Thank you for sharing your details.\n\nOur advisor will contact you shortly.",
-            options=QUICK_ACTIONS,
-            progress=100,
-        )
-
-    save_session(user_id, "chat", data)
-    return _start_message()
+    return _ui(FINAL_MESSAGE, progress=100, stage="completed")

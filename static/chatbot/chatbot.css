@@ -313,6 +313,15 @@
   transform: translateY(-1px);
 }
 
+.cb-options button:disabled,
+.cb-input-row input:disabled,
+.cb-input-row button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .cb-input-row {
   display: flex;
   gap: 8px;

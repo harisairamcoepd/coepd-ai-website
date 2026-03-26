@@ -108,9 +108,21 @@
       btn.type = "button";
       btn.textContent = label;
       btn.addEventListener("click", function () {
+        if (state.loading) return;
         sendMessage(label);
       });
       wrap.appendChild(btn);
+    });
+  }
+
+  function setInputEnabled(enabled) {
+    const input = document.getElementById("cb-input");
+    const submitBtn = document.querySelector("#cb-form button[type='submit']");
+    if (input) input.disabled = !enabled;
+    if (submitBtn) submitBtn.disabled = !enabled;
+    const optionButtons = document.querySelectorAll("#cb-options button");
+    optionButtons.forEach((btn) => {
+      btn.disabled = !enabled;
     });
   }
 
@@ -149,6 +161,7 @@
   async function sendMessage(message, showUserBubble = true) {
     if (state.loading || !message || !message.trim()) return;
     state.loading = true;
+    setInputEnabled(false);
 
     const input = document.getElementById("cb-input");
     if (showUserBubble) {
@@ -159,11 +172,14 @@
     const typingEl = appendMessage("bot", "", true);
 
     try {
-      const response = await fetch((window.__API_BASE__ || "") + "/chat", {
+      const minTypingDelay = 1000 + Math.floor(Math.random() * 1000);
+      const responsePromise = fetch((window.__API_BASE__ || "") + "/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: message.trim(), user_id: state.userId }),
       });
+      const delayPromise = new Promise((resolve) => setTimeout(resolve, minTypingDelay));
+      const [response] = await Promise.all([responsePromise, delayPromise]);
 
       if (!response.ok) {
         throw new Error(`Chat error ${response.status}`);
@@ -200,6 +216,7 @@
       ]);
     } finally {
       state.loading = false;
+      setInputEnabled(true);
       input.focus();
     }
   }

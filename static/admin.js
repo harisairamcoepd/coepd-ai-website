@@ -46,32 +46,6 @@ function sourceBadge(source) {
   return `<span class="${css}">${escapeHtml(label)}</span>`;
 }
 
-const DOMAIN_BADGE_MAP = {
-  "banking": "badge-banking",
-  "finance": "badge-finance",
-  "healthcare": "badge-healthcare",
-  "insurance": "badge-insurance",
-  "retail": "badge-retail",
-  "e-commerce": "badge-ecommerce",
-  "telecom": "badge-telecom",
-  "manufacturing": "badge-manufacturing",
-  "logistics & supply chain": "badge-logistics",
-  "education": "badge-education",
-  "it / software": "badge-it",
-  "pharmaceutical": "badge-pharma",
-  "real estate": "badge-realestate",
-  "energy & utilities": "badge-energy",
-  "other": "badge-other",
-};
-
-function domainBadge(domain) {
-  const raw = String(domain || "").trim();
-  if (!raw || raw === "-") return escapeHtml("-");
-  const key = raw.toLowerCase();
-  const cls = DOMAIN_BADGE_MAP[key] || "badge-other";
-  return `<span class="badge ${cls}">${escapeHtml(raw)}</span>`;
-}
-
 function roleBadge(role) {
   const value = String(role || "staff").trim().toLowerCase();
   return `<span class="role-badge ${value}">${escapeHtml(value)}</span>`;
@@ -102,11 +76,6 @@ function currentFilterSource() {
 function currentFilterSearch() {
   const searchInput = document.getElementById("filter-search");
   return searchInput ? (searchInput.value || "") : "";
-}
-
-function currentFilterDomain() {
-  const domainInput = document.getElementById("filter-domain");
-  return domainInput ? (domainInput.value || "all") : "all";
 }
 
 function updateSectionTitle() {
@@ -239,7 +208,7 @@ function renderLeadsTable() {
 
   const rows = asArray(allLeads);
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:#64748b">No leads found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#64748b">No leads found.</td></tr>';
     updatePager();
     return;
   }
@@ -266,7 +235,6 @@ function renderLeadsTable() {
         <td>${escapeHtml(lead.phone)}</td>
         <td>${escapeHtml(lead.email)}</td>
         <td>${escapeHtml(lead.location || "-")}</td>
-        <td>${domainBadge(lead.interested_domain)}</td>
         <td>${sourceBadge(lead.source)}</td>
         <td style="white-space:nowrap">${escapeHtml(createdAt)}</td>
         <td>${deleteAction || "-"}</td>
@@ -362,11 +330,9 @@ async function loadLeads() {
   const date = currentFilterDate();
   const source = currentFilterSource();
   const search = currentFilterSearch();
-  const domain = currentFilterDomain();
   const queryParts = [];
   if (date) queryParts.push(`date=${encodeURIComponent(date)}`);
   if (source && source !== "all") queryParts.push(`source=${encodeURIComponent(source)}`);
-  if (domain && domain !== "all") queryParts.push(`interested_domain=${encodeURIComponent(domain)}`);
   if (search) queryParts.push(`search=${encodeURIComponent(search)}`);
   const query = queryParts.length ? `?${queryParts.join("&")}` : "";
 

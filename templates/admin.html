@@ -107,27 +107,6 @@
             <option value="chatbot" {% if filter_source == 'chatbot' %}selected{% endif %}>Chatbot</option>
           </select>
         </label>
-        <label class="field">
-          <span>Domain</span>
-          <select name="interested_domain" id="filter-domain">
-            <option value="all" {% if filter_domain == 'all' %}selected{% endif %}>All Domains</option>
-            <option value="Banking" {% if filter_domain == 'Banking' %}selected{% endif %}>Banking</option>
-            <option value="Finance" {% if filter_domain == 'Finance' %}selected{% endif %}>Finance</option>
-            <option value="Healthcare" {% if filter_domain == 'Healthcare' %}selected{% endif %}>Healthcare</option>
-            <option value="Insurance" {% if filter_domain == 'Insurance' %}selected{% endif %}>Insurance</option>
-            <option value="Retail" {% if filter_domain == 'Retail' %}selected{% endif %}>Retail</option>
-            <option value="E-Commerce" {% if filter_domain == 'E-Commerce' %}selected{% endif %}>E-Commerce</option>
-            <option value="Telecom" {% if filter_domain == 'Telecom' %}selected{% endif %}>Telecom</option>
-            <option value="Manufacturing" {% if filter_domain == 'Manufacturing' %}selected{% endif %}>Manufacturing</option>
-            <option value="Logistics & Supply Chain" {% if filter_domain == 'Logistics & Supply Chain' %}selected{% endif %}>Logistics & Supply Chain</option>
-            <option value="Education" {% if filter_domain == 'Education' %}selected{% endif %}>Education</option>
-            <option value="IT / Software" {% if filter_domain == 'IT / Software' %}selected{% endif %}>IT / Software</option>
-            <option value="Pharmaceutical" {% if filter_domain == 'Pharmaceutical' %}selected{% endif %}>Pharmaceutical</option>
-            <option value="Real Estate" {% if filter_domain == 'Real Estate' %}selected{% endif %}>Real Estate</option>
-            <option value="Energy & Utilities" {% if filter_domain == 'Energy & Utilities' %}selected{% endif %}>Energy & Utilities</option>
-            <option value="Other" {% if filter_domain == 'Other' %}selected{% endif %}>Other</option>
-          </select>
-        </label>
         <label class="field field--search">
           <span>Search</span>
           <input
@@ -153,7 +132,7 @@
           <span class="section-kicker">Records</span>
           <h3 id="lead-section-title">All Leads</h3>
         </div>
-        <span class="section-note">Latest enquiries with source and domain details</span>
+        <span class="section-note">Latest enquiries with source details</span>
       </div>
       <div class="table-wrap">
         <table>
@@ -164,7 +143,6 @@
               <th>Phone</th>
               <th>Email</th>
               <th>Location</th>
-              <th>Interested Domain</th>
               <th>Source</th>
               <th>Date &amp; Time</th>
               <th>Actions</th>
@@ -178,14 +156,13 @@
               <td>{{ l.phone }}</td>
               <td>{{ l.email }}</td>
               <td>{{ l.location or '-' }}</td>
-              <td>{{ l.interested_domain or '-' }}</td>
               <td>{{ l.source }}</td>
               <td style="white-space:nowrap">{{ l.datetime_display or l.created_at }}</td>
               <td>-</td>
             </tr>
           {% endfor %}
           {% if not leads %}
-            <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--a-muted)">No leads found.</td></tr>
+            <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--a-muted)">No leads found.</td></tr>
           {% endif %}
           </tbody>
         </table>
@@ -262,6 +239,6 @@
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="/static/admin.js?v=20260317-4"></script>
+  <script src="/static/admin.js?v=20260326-1"></script>
 </body>
 </html>
